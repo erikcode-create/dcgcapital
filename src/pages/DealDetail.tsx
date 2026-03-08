@@ -75,6 +75,8 @@ const DealDetail = () => {
   const [assignInvestorId, setAssignInvestorId] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedEmail, setSelectedEmail] = useState<any>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<any>(null);
+  const [analyzingOverview, setAnalyzingOverview] = useState(false);
 
   const fetchDeal = useCallback(async () => {
     if (!id) return;

@@ -108,8 +108,15 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     setLoading(false);
   }, [activeFolder]);
 
+  // Auto-sync on mount, then load from DB
+  const hasAutoSynced = useState(false);
   useEffect(() => {
-    fetchEmails();
+    if (!hasAutoSynced[0]) {
+      hasAutoSynced[1](true);
+      syncEmails().then(() => fetchEmails());
+    } else {
+      fetchEmails();
+    }
   }, [fetchEmails]);
 
   // Fetch attachments when an email with attachments is selected

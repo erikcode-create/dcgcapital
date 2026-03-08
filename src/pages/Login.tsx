@@ -82,13 +82,13 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-dark p-6">
+    <div className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="absolute inset-0 opacity-10">
         <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-accent/20 blur-[120px]" />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-        <Link to="/" className="mb-8 flex items-center gap-2 text-primary-foreground/60 transition-colors hover:text-primary-foreground">
+        <Link to="/" className="mb-8 flex items-center gap-2 text-foreground/60 transition-colors hover:text-foreground">
           <ArrowLeft className="h-4 w-4" />
           <span className="font-body text-sm">Back to website</span>
         </Link>
@@ -97,8 +97,8 @@ const Login = () => {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-royal">
             <Shield className="h-6 w-6 text-accent-foreground" />
           </div>
-          <h1 className="font-display text-3xl font-light text-primary-foreground">Investor Portal</h1>
-          <p className="font-body mt-2 text-sm text-primary-foreground/50">Fitzpatrick Capital Partners</p>
+          <h1 className="font-display text-3xl font-light text-foreground">Investor Portal</h1>
+          <p className="font-body mt-2 text-sm text-muted-foreground">Fitzpatrick Capital Partners</p>
         </div>
 
         {showForgot ? (

@@ -346,17 +346,7 @@ const DealDetail = () => {
             <h2 className="font-display text-lg font-semibold text-card-foreground">{deal.name}</h2>
           </div>
           <div className="flex items-center gap-2">
-            {editing ? (
-              <>
-                <Button size="sm" variant="outline" onClick={() => { setEditing(false); setEditData(deal); }}><X className="mr-1 h-4 w-4" />Cancel</Button>
-                <Button size="sm" className="bg-gradient-royal text-accent-foreground" onClick={handleSave}><Save className="mr-1 h-4 w-4" />Save</Button>
-              </>
-            ) : (
-              <>
-                <Button size="sm" variant="outline" onClick={() => setEditing(true)}><Edit className="mr-1 h-4 w-4" />Edit</Button>
-                <Button size="sm" variant="destructive" onClick={handleDelete}><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
-              </>
-            )}
+            <Button size="sm" variant="destructive" onClick={handleDelete}><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
           </div>
         </div>
       </header>

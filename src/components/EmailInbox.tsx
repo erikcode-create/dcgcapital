@@ -288,6 +288,24 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     }
   };
 
+  const handleDeleteEmail = async (emailId: string) => {
+    setDeletingId(emailId);
+    try {
+      const { error } = await supabase.from("emails").delete().eq("id", emailId);
+      if (error) throw error;
+      setEmails(prev => prev.filter(e => e.id !== emailId));
+      if (selectedEmail?.id === emailId) {
+        setSelectedEmail(null);
+        setAttachments([]);
+      }
+      toast({ title: "Email deleted", description: "Email removed successfully." });
+    } catch (err: any) {
+      toast({ title: "Delete failed", description: err.message, variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const filteredEmails = emails.filter((e) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();

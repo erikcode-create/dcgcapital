@@ -2,3 +2,6 @@ project_id = "gdulykjwkrezaidlylyj"
 
 [functions.convert-email-to-deal]
 verify_jwt = false
+
+[functions.fetch-email-attachments]
+verify_jwt = false

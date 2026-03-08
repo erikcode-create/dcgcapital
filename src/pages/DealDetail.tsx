@@ -149,9 +149,7 @@ const DealDetail = () => {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Deal updated" });
-      setEditing(false);
-      fetchDeal();
+      setDeal({ ...deal, ...updateData });
     }
   };
 

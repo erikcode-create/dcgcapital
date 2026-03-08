@@ -377,9 +377,39 @@ Deno.serve(async (req) => {
 
       const linkedSet = new Set((allLinked || []).map(d => d.email_id));
 
+      // Helper to normalize subject for duplicate detection
+      const normalizeSubject = (subject: string | null): string => {
+        if (!subject) return "";
+        return subject.replace(/^(fwd?:|re:|fw:)\s*/gi, "").replace(/^(fwd?:|re:|fw:)\s*/gi, "").trim();
+      };
+
       for (const email of allUnlinkedEmails) {
         if (linkedSet.has(email.id)) continue;
         if (email.conversation_id && convDealMap[email.conversation_id]) continue;
+
+        // Check if a deal with a matching normalized name already exists
+        const normalized = normalizeSubject(email.subject);
+        if (normalized) {
+          const { data: existingDeals } = await supabase
+            .from("deals")
+            .select("id")
+            .ilike("name", normalized)
+            .limit(1);
+
+          if (existingDeals && existingDeals.length > 0) {
+            const existingDealId = existingDeals[0].id;
+            console.log(`Found existing deal for "${email.subject}" -> linking to deal ${existingDealId}`);
+            await supabase.from("deal_emails").upsert(
+              { deal_id: existingDealId, email_id: email.id, linked_by: "auto" },
+              { onConflict: "deal_id,email_id" }
+            );
+            linkedSet.add(email.id);
+            if (email.conversation_id) {
+              convDealMap[email.conversation_id] = existingDealId;
+            }
+            continue;
+          }
+        }
 
         try {
           const convertUrl = `${supabaseUrl}/functions/v1/convert-email-to-deal`;
@@ -402,7 +432,6 @@ Deno.serve(async (req) => {
             if (email.conversation_id && convertData.deal?.id) {
               convDealMap[email.conversation_id] = convertData.deal.id;
             }
-            // Add to linked set so subsequent emails in same batch don't re-convert
             linkedSet.add(email.id);
           } else {
             console.error(`Auto-convert failed for email ${email.id}:`, await convertRes.text());

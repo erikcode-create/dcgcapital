@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import NdaManager from "@/components/NdaManager";
 import EmailInbox from "@/components/EmailInbox";
+import DataRoomSection from "@/components/DataRoomSection";
 import { format } from "date-fns";
 
 const PIPELINE_STAGES = [

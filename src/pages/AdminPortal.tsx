@@ -459,7 +459,7 @@ const AdminPortal = () => {
                         <SelectContent>{investors.map(i => <SelectItem key={i.id} value={i.id}>{i.full_name || i.email}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
-                    <Button onClick={handleAssignDeal} className="w-full bg-gradient-gold text-accent-foreground">Assign</Button>
+                    <Button onClick={handleAssignDeal} className="w-full bg-gradient-royal text-accent-foreground">Assign</Button>
                   </div>
                 </DialogContent>
               </Dialog>

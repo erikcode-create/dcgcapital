@@ -553,6 +553,45 @@ const DealDetail = () => {
                 </CardContent>
               </Card>
 
+              {/* AI Analysis Summary - show full detail from analyzed documents */}
+              {(() => {
+                const analyzedDocs = dealDocuments.filter((d: any) => d.ai_summary);
+                if (analyzedDocs.length === 0 && !analyzingOverview) return null;
+                const latestAnalysis = analyzedDocs.length > 0 ? analyzedDocs[analyzedDocs.length - 1] : null;
+                return (
+                  <Card className="border-accent/20 bg-accent/5 md:col-span-2">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="font-display text-base flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-accent" />
+                        AI Deal Analysis
+                        {latestAnalysis && (
+                          <span className="font-body text-xs text-muted-foreground font-normal ml-2">
+                            from {latestAnalysis.file_name}
+                          </span>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {latestAnalysis?.ai_summary ? (
+                        <div className="font-body text-sm text-foreground prose prose-sm max-w-none dark:prose-invert prose-headings:font-display prose-headings:text-foreground prose-p:text-foreground/90 prose-li:text-foreground/90 prose-strong:text-foreground">
+                          {latestAnalysis.ai_summary.split('\n').map((line: string, i: number) => {
+                            if (line.startsWith('## ')) return <h3 key={i} className="text-sm font-semibold mt-4 mb-2 text-foreground">{line.replace('## ', '')}</h3>;
+                            if (line.startsWith('* ') || line.startsWith('- ')) return <li key={i} className="ml-4 text-foreground/90 mb-1">{line.replace(/^[*-]\s+/, '').split('**').map((part: string, j: number) => j % 2 === 1 ? <strong key={j} className="text-foreground">{part}</strong> : part)}</li>;
+                            if (line.trim() === '') return <div key={i} className="h-2" />;
+                            return <p key={i} className="text-foreground/90 mb-1">{line.split('**').map((part: string, j: number) => j % 2 === 1 ? <strong key={j} className="text-foreground">{part}</strong> : part)}</p>;
+                          })}
+                        </div>
+                      ) : analyzingOverview ? (
+                        <div className="flex items-center gap-2 py-4">
+                          <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                          <span className="font-body text-sm text-muted-foreground">Analyzing document...</span>
+                        </div>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
               <Card className="border-border">
                 <CardHeader>
                   <CardTitle className="font-display text-base flex items-center gap-2">
@@ -562,7 +601,7 @@ const DealDetail = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="font-body text-xs text-muted-foreground mb-3">
-                    Upload a document and AI will analyze it, then suggest fields to populate on this deal.
+                    Upload a document and AI will analyze it and auto-populate deal fields.
                   </p>
                   {analyzingOverview ? (
                     <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-accent/30 bg-accent/5 py-8">
@@ -574,7 +613,7 @@ const DealDetail = () => {
                     <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-8 transition-colors hover:border-accent/50 hover:bg-accent/5">
                       <Upload className="h-6 w-6 text-muted-foreground" />
                       <p className="font-body mt-2 text-sm font-medium text-foreground">Drop or click to upload</p>
-                      <p className="font-body mt-1 text-[11px] text-muted-foreground">PDF, PPTX, DOCX — AI will suggest deal fields</p>
+                      <p className="font-body mt-1 text-[11px] text-muted-foreground">PDF, PPTX, DOCX — AI will analyze and update deal</p>
                       <input
                         type="file"
                         className="hidden"

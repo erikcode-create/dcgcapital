@@ -43,36 +43,101 @@ export type Database = {
           },
         ]
       }
+      deal_notes: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          deal_id: string
+          id: string
+          note_type: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          deal_id: string
+          id?: string
+          note_type?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          deal_id?: string
+          id?: string
+          note_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_notes_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deals: {
         Row: {
+          contact_email: string | null
+          contact_name: string | null
           created_at: string
           created_by: string | null
+          deal_type: string | null
           description: string | null
+          ebitda: number | null
+          enterprise_value: number | null
+          geography: string | null
           id: string
+          investment_amount: number | null
           name: string
+          notes: string | null
+          revenue: number | null
           sector: string | null
+          stage: string
           status: string
           target_return: string | null
           updated_at: string
         }
         Insert: {
+          contact_email?: string | null
+          contact_name?: string | null
           created_at?: string
           created_by?: string | null
+          deal_type?: string | null
           description?: string | null
+          ebitda?: number | null
+          enterprise_value?: number | null
+          geography?: string | null
           id?: string
+          investment_amount?: number | null
           name: string
+          notes?: string | null
+          revenue?: number | null
           sector?: string | null
+          stage?: string
           status?: string
           target_return?: string | null
           updated_at?: string
         }
         Update: {
+          contact_email?: string | null
+          contact_name?: string | null
           created_at?: string
           created_by?: string | null
+          deal_type?: string | null
           description?: string | null
+          ebitda?: number | null
+          enterprise_value?: number | null
+          geography?: string | null
           id?: string
+          investment_amount?: number | null
           name?: string
+          notes?: string | null
+          revenue?: number | null
           sector?: string | null
+          stage?: string
           status?: string
           target_return?: string | null
           updated_at?: string

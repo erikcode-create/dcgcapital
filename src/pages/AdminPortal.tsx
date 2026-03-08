@@ -778,6 +778,10 @@ const AdminPortal = () => {
               )}
             </div>
           </TabsContent>
+          {/* NDA Tab */}
+          <TabsContent value="nda">
+            <NdaManager investors={investors} />
+          </TabsContent>
         </Tabs>
       </main>
 

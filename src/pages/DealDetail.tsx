@@ -47,7 +47,12 @@ const DEAL_TYPES = [
 ];
 
 const formatCurrency = (value: number | null | undefined) => {
-  if (!value) return "—";
+  if (!value && value !== 0) return "—";
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+};
+
+const formatCurrencyCompact = (value: number | null | undefined) => {
+  if (!value && value !== 0) return "—";
   if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;

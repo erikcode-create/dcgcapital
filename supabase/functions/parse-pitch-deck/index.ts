@@ -73,6 +73,7 @@ serve(async (req) => {
     }
 
     // Convert to base64 in chunks to avoid stack overflow
+    const arrayBuffer = await fileData.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
     let binary = "";
     const chunkSize = 8192;

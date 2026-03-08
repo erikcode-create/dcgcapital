@@ -781,7 +781,7 @@ const AdminPortal = () => {
                   {dealNotes.filter(n => n.deal_id === detailDeal.id).map((note) => (
                     <div key={note.id} className="rounded-lg bg-muted/50 p-3">
                       <div className="flex items-center justify-between">
-                        <p className="font-body text-xs font-medium text-card-foreground">{(note.profiles as any)?.full_name || "Admin"}</p>
+                        <p className="font-body text-xs font-medium text-card-foreground">{note.author_profile?.full_name || "Admin"}</p>
                         <p className="font-body text-[11px] text-muted-foreground">{note.created_at ? format(new Date(note.created_at), "MMM d h:mm a") : ""}</p>
                       </div>
                       <p className="font-body mt-1 text-sm text-muted-foreground">{note.content}</p>

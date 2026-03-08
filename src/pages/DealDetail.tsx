@@ -206,12 +206,29 @@ const DealDetail = () => {
         const { data: { session } } = await supabase.auth.getSession();
         supabase.functions.invoke("analyze-document", {
           headers: { Authorization: `Bearer ${session?.access_token}` },
-          body: { document_id: insertedDoc.id },
-        }).then(({ error }) => {
-          if (!error) {
+          body: { document_id: insertedDoc.id, extract_deal_fields: true },
+        }).then(async ({ data: analysisData, error }) => {
+          if (!error && analysisData?.suggested_fields) {
+            const filtered: Record<string, any> = {};
+            for (const [key, value] of Object.entries(analysisData.suggested_fields)) {
+              if (value !== null && value !== undefined && value !== "") {
+                filtered[key] = value;
+              }
+            }
+            if (Object.keys(filtered).length > 0) {
+              const { error: updateError } = await supabase.from("deals").update(filtered).eq("id", dealId);
+              if (!updateError) {
+                setDeal((prev: any) => ({ ...prev, ...filtered }));
+                setEditData((prev: any) => ({ ...prev, ...filtered }));
+                toast({ title: "AI Auto-Populated Fields", description: `Updated ${Object.keys(filtered).length} fields from ${file.name}` });
+              }
+            } else {
+              toast({ title: "AI Analysis Complete", description: `Summary generated for ${file.name}` });
+            }
+          } else if (!error) {
             toast({ title: "AI Analysis Complete", description: `Summary generated for ${file.name}` });
-            fetchRelated();
           }
+          fetchRelated();
         });
       }
     } catch (err: any) {

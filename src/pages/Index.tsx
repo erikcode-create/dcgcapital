@@ -32,7 +32,7 @@ const Index = () => {
       <nav className="fixed top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto flex h-20 items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded bg-gradient-gold" />
+            <div className="h-10 w-10 rounded bg-gradient-royal" />
             <div>
               <h2 className="font-display text-xl font-semibold tracking-tight text-foreground">Fitzpatrick</h2>
               <p className="font-body text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Capital Partners</p>

@@ -74,6 +74,8 @@ const AdminPortal = () => {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [dealAssignments, setDealAssignments] = useState<any[]>([]);
   const [detailAssignInvestorId, setDetailAssignInvestorId] = useState("");
+  const [dealDocuments, setDealDocuments] = useState<any[]>([]);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
   const navigate = useNavigate();
   const [newDeal, setNewDeal] = useState({
     name: "", description: "", sector: "", target_return: "", status: "active",

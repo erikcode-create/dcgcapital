@@ -284,6 +284,28 @@ Return ONLY the JSON object, no markdown, no code fences.`,
       });
     }
 
+    // Insert all attachments as deal_documents
+    if (newDeal && uploadedFiles.length > 0) {
+      const docInserts = uploadedFiles.map((f) => ({
+        deal_id: newDeal.id,
+        file_name: f.name,
+        file_path: f.path,
+        file_size: f.base64.length * 0.75, // approximate decoded size
+        content_type: f.mimeType,
+        document_type: guessDocumentType(f.name, f.mimeType),
+        uploaded_by: userId,
+        source: "email",
+      }));
+
+      const { error: docsError } = await supabase
+        .from("deal_documents")
+        .insert(docInserts);
+
+      if (docsError) {
+        console.error("Failed to insert deal documents:", docsError.message);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,

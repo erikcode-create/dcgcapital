@@ -74,7 +74,7 @@ const Index = () => {
             initial="hidden" animate="visible" variants={fadeUp} custom={2}
             className="font-body mx-auto mt-8 max-w-2xl text-lg text-primary-foreground/60 md:text-xl"
           >
-            Fitzpatrick Capital Partners is a private equity firm focused on acquiring and growing
+            Fitzpatrick Capital Partners is an investment firm focused on acquiring and growing
             exceptional middle-market businesses across North America.
           </motion.p>
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3} className="mt-12 flex items-center justify-center gap-4">

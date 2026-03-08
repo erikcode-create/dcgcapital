@@ -386,7 +386,7 @@ const AdminPortal = () => {
       <header className="border-b border-border bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded bg-gradient-gold" />
+            <div className="h-8 w-8 rounded bg-gradient-royal" />
             <div>
               <h2 className="font-display text-lg font-semibold text-card-foreground">Deal Flow CRM</h2>
               <p className="font-body text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Fitzpatrick Capital Partners</p>

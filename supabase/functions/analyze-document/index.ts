@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { document_id } = await req.json();
+    const { document_id, extract_deal_fields } = await req.json();
     if (!document_id) {
       return new Response(JSON.stringify({ error: "document_id is required" }), {
         status: 400,
@@ -68,6 +68,13 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Also fetch the current deal data for context
+    const { data: deal } = await supabase
+      .from("deals")
+      .select("*")
+      .eq("id", doc.deal_id)
+      .single();
 
     // Download the file from storage
     const { data: fileData, error: downloadError } = await supabase.storage
@@ -91,11 +98,67 @@ Deno.serve(async (req) => {
       binary += String.fromCharCode(...chunk);
     }
     const base64 = btoa(binary);
-
-    // Determine mime type
     const contentType = doc.content_type || "application/pdf";
 
-    // Send to AI for analysis
+    // Build the system prompt based on whether we need deal field extraction
+    let systemPrompt: string;
+    if (extract_deal_fields) {
+      systemPrompt = `You are a document analyst for an investment firm. Analyze the uploaded document and:
+
+1. Provide a comprehensive summary for investors
+2. Extract structured deal data that should be populated into the deal record
+
+Current deal data:
+- Name: ${deal?.name || "Unknown"}
+- Description: ${deal?.description || "None"}
+- Sector: ${deal?.sector || "None"}
+- Geography: ${deal?.geography || "None"}
+- Deal Type: ${deal?.deal_type || "None"}
+- Enterprise Value: ${deal?.enterprise_value || "None"}
+- EBITDA: ${deal?.ebitda || "None"}
+- Revenue: ${deal?.revenue || "None"}
+- Investment Amount: ${deal?.investment_amount || "None"}
+- Target Return: ${deal?.target_return || "None"}
+- Contact Name: ${deal?.contact_name || "None"}
+- Contact Email: ${deal?.contact_email || "None"}
+- Category: ${deal?.category || "equity"}
+
+Return a JSON object with exactly these two fields:
+{
+  "summary": "Your comprehensive markdown-formatted analysis including: Document Overview, Company/Deal Summary, Key Financials, Investment Highlights, Risk Factors, and Key Takeaways",
+  "suggested_fields": {
+    "description": "suggested description or null if current is better",
+    "sector": "suggested sector or null",
+    "geography": "suggested geography or null",
+    "deal_type": "one of: buyout, growth_equity, recapitalization, add_on, platform, revenue_seeking — or null",
+    "enterprise_value": numeric value in dollars or null,
+    "ebitda": numeric value in dollars or null,
+    "revenue": numeric value in dollars or null,
+    "investment_amount": numeric value in dollars or null,
+    "target_return": "target return string or null",
+    "contact_name": "contact name or null",
+    "contact_email": "contact email or null",
+    "category": "one of: equity, debt, revenue_seeking — or null",
+    "notes": "additional insights to append to notes, or null"
+  }
+}
+
+ONLY suggest field values that you found in the document and that are BETTER than or MISSING from the current deal data. Set fields to null if the current value is already good or the document doesn't contain that information.
+
+Return ONLY the JSON object, no markdown code fences.`;
+    } else {
+      systemPrompt = `You are a document analyst for an investment firm. Analyze the uploaded document and provide a comprehensive summary that would be useful for investors evaluating this deal. Include:
+
+1. **Document Overview** — What type of document this is and its purpose
+2. **Company/Deal Summary** — Key information about the company or deal
+3. **Key Financials** — Any financial data, metrics, revenue, EBITDA, growth rates
+4. **Investment Highlights** — Strengths, competitive advantages, market opportunity
+5. **Risk Factors** — Any risks, concerns, or red flags identified
+6. **Key Takeaways** — 3-5 bullet points summarizing the most important findings
+
+Format using markdown for readability. Be thorough but concise. If certain information is not present in the document, note that it was not included.`;
+    }
+
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -105,31 +168,17 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          {
-            role: "system",
-            content: `You are a document analyst for an investment firm. Analyze the uploaded document and provide a comprehensive summary that would be useful for investors evaluating this deal. Include:
-
-1. **Document Overview** — What type of document this is and its purpose
-2. **Company/Deal Summary** — Key information about the company or deal
-3. **Key Financials** — Any financial data, metrics, revenue, EBITDA, growth rates
-4. **Investment Highlights** — Strengths, competitive advantages, market opportunity
-5. **Risk Factors** — Any risks, concerns, or red flags identified
-6. **Key Takeaways** — 3-5 bullet points summarizing the most important findings
-
-Format using markdown for readability. Be thorough but concise. If certain information is not present in the document, note that it was not included.`,
-          },
+          { role: "system", content: systemPrompt },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: `Analyze this document titled "${doc.file_name}" and provide a comprehensive investor-ready summary:`,
+                text: `Analyze this document titled "${doc.file_name}" and provide ${extract_deal_fields ? "a summary with suggested deal field updates" : "a comprehensive investor-ready summary"}:`,
               },
               {
                 type: "image_url",
-                image_url: {
-                  url: `data:${contentType};base64,${base64}`,
-                },
+                image_url: { url: `data:${contentType};base64,${base64}` },
               },
             ],
           },
@@ -142,27 +191,50 @@ Format using markdown for readability. Be thorough but concise. If certain infor
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
       console.error("AI error:", errText);
+
+      if (aiResponse.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again later." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       return new Response(JSON.stringify({ error: "AI analysis failed" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const aiResult = await aiResponse.json();
-    const summary = aiResult.choices?.[0]?.message?.content || "Analysis could not be completed.";
+    const rawContent = aiResult.choices?.[0]?.message?.content || "";
+
+    let summary: string;
+    let suggestedFields: any = null;
+
+    if (extract_deal_fields) {
+      try {
+        const cleaned = rawContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        const parsed = JSON.parse(cleaned);
+        summary = parsed.summary || rawContent;
+        suggestedFields = parsed.suggested_fields || null;
+      } catch {
+        summary = rawContent;
+      }
+    } else {
+      summary = rawContent;
+    }
 
     // Save summary to the document record
-    const { error: updateError } = await supabase
+    await supabase
       .from("deal_documents")
       .update({ ai_summary: summary })
       .eq("id", document_id);
 
-    if (updateError) {
-      console.error("Failed to save summary:", updateError.message);
-    }
-
     return new Response(
-      JSON.stringify({ success: true, summary }),
+      JSON.stringify({ success: true, summary, suggested_fields: suggestedFields }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {

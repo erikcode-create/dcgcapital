@@ -112,16 +112,16 @@
   .font-body {
     font-family: 'Inter', sans-serif;
   }
-  .text-gradient-gold {
-    background: linear-gradient(135deg, hsl(348 45% 45%), hsl(348 60% 30%), hsl(348 65% 20%));
+  .text-gradient-royal {
+    background: linear-gradient(135deg, hsl(270 40% 40%), hsl(270 50% 25%), hsl(270 55% 16%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .bg-gradient-navy {
-    background: linear-gradient(180deg, hsl(0 0% 5%) 0%, hsl(0 0% 10%) 100%);
+  .bg-gradient-dark {
+    background: linear-gradient(180deg, hsl(270 30% 6%) 0%, hsl(270 25% 12%) 100%);
   }
-  .bg-gradient-gold {
-    background: linear-gradient(135deg, hsl(348 60% 30%) 0%, hsl(348 65% 20%) 100%);
+  .bg-gradient-royal {
+    background: linear-gradient(135deg, hsl(270 50% 25%) 0%, hsl(270 55% 16%) 100%);
   }
 }

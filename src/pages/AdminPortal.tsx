@@ -69,6 +69,8 @@ const AdminPortal = () => {
   const [creatingInvestor, setCreatingInvestor] = useState(false);
   const [uploadingDeck, setUploadingDeck] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [dealAssignments, setDealAssignments] = useState<any[]>([]);
+  const [detailAssignInvestorId, setDetailAssignInvestorId] = useState("");
   const navigate = useNavigate();
   const [newDeal, setNewDeal] = useState({
     name: "", description: "", sector: "", target_return: "", status: "active",

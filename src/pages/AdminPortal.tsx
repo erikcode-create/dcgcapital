@@ -435,6 +435,41 @@ const AdminPortal = () => {
                   </div>
                 </DialogContent>
               </Dialog>
+              <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm"><Upload className="mr-2 h-4 w-4" />Upload Deck</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle className="font-display">Upload Pitch Deck</DialogTitle></DialogHeader>
+                  <p className="font-body text-sm text-muted-foreground">
+                    Upload a pitch deck or investment memo (PDF, PPTX, DOCX) and AI will automatically extract deal details and create a new deal in your pipeline.
+                  </p>
+                  <div className="mt-4">
+                    {uploadingDeck ? (
+                      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-accent/30 bg-accent/5 py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+                        <p className="font-body mt-3 text-sm text-muted-foreground">Analyzing pitch deck with AI...</p>
+                        <p className="font-body mt-1 text-xs text-muted-foreground">This may take 15-30 seconds</p>
+                      </div>
+                    ) : (
+                      <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-12 transition-colors hover:border-accent/50 hover:bg-accent/5">
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <p className="font-body mt-3 text-sm font-medium text-foreground">Click to upload or drag & drop</p>
+                        <p className="font-body mt-1 text-xs text-muted-foreground">PDF, PPTX, or DOCX up to 20MB</p>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".pdf,.pptx,.ppt,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePitchDeckUpload(file);
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
               <Dialog open={dealDialogOpen} onOpenChange={setDealDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="bg-gradient-gold text-accent-foreground"><Plus className="mr-2 h-4 w-4" />New Deal</Button>

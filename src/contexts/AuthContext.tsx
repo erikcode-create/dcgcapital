@@ -2,6 +2,11 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+const isPreviewMode = () => {
+  const hostname = window.location.hostname;
+  return hostname.includes("preview") && hostname.endsWith(".lovable.app");
+};
+
 type UserRole = "admin" | "investor";
 
 interface AuthContextType {
@@ -78,6 +83,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchUserData(session.user.id);
+      } else if (isPreviewMode()) {
+        // In preview mode without a session, set admin role for easy access
+        setUserRole("admin");
       }
       setLoading(false);
     });

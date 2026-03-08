@@ -38,6 +38,7 @@ const DEAL_TYPES = [
   { key: "recapitalization", label: "Recapitalization" },
   { key: "add_on", label: "Add-On Acquisition" },
   { key: "platform", label: "Platform Investment" },
+  { key: "revenue_seeking", label: "Revenue Seeking" },
 ];
 
 const formatCurrency = (value: number | null | undefined) => {

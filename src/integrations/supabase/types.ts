@@ -147,6 +147,78 @@ export type Database = {
         }
         Relationships: []
       }
+      emails: {
+        Row: {
+          body_html: string | null
+          body_preview: string | null
+          body_text: string | null
+          cc_addresses: Json | null
+          conversation_id: string | null
+          created_at: string
+          folder: string | null
+          from_address: string | null
+          from_name: string | null
+          has_attachments: boolean | null
+          id: string
+          importance: string | null
+          in_reply_to: string | null
+          is_draft: boolean | null
+          is_read: boolean | null
+          microsoft_id: string
+          received_at: string | null
+          sent_at: string | null
+          subject: string | null
+          to_addresses: Json | null
+          updated_at: string
+        }
+        Insert: {
+          body_html?: string | null
+          body_preview?: string | null
+          body_text?: string | null
+          cc_addresses?: Json | null
+          conversation_id?: string | null
+          created_at?: string
+          folder?: string | null
+          from_address?: string | null
+          from_name?: string | null
+          has_attachments?: boolean | null
+          id?: string
+          importance?: string | null
+          in_reply_to?: string | null
+          is_draft?: boolean | null
+          is_read?: boolean | null
+          microsoft_id: string
+          received_at?: string | null
+          sent_at?: string | null
+          subject?: string | null
+          to_addresses?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string | null
+          body_preview?: string | null
+          body_text?: string | null
+          cc_addresses?: Json | null
+          conversation_id?: string | null
+          created_at?: string
+          folder?: string | null
+          from_address?: string | null
+          from_name?: string | null
+          has_attachments?: boolean | null
+          id?: string
+          importance?: string | null
+          in_reply_to?: string | null
+          is_draft?: boolean | null
+          is_read?: boolean | null
+          microsoft_id?: string
+          received_at?: string | null
+          sent_at?: string | null
+          subject?: string | null
+          to_addresses?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       interest_expressions: {
         Row: {
           created_at: string

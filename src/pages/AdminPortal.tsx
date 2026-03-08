@@ -20,6 +20,7 @@ import {
   Briefcase, MapPin, Phone, Mail, FileText, Clock, User, Upload, Loader2, Download
 } from "lucide-react";
 import NdaManager from "@/components/NdaManager";
+import EmailInbox from "@/components/EmailInbox";
 import { format } from "date-fns";
 
 const PIPELINE_STAGES = [
@@ -437,6 +438,7 @@ const AdminPortal = () => {
               <TabsTrigger value="interest" className="font-body">Interest</TabsTrigger>
               <TabsTrigger value="messages" className="font-body">Messages</TabsTrigger>
               <TabsTrigger value="nda" className="font-body">NDA</TabsTrigger>
+              <TabsTrigger value="email" className="font-body">Email</TabsTrigger>
             </TabsList>
             <div className="flex gap-2">
               <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
@@ -782,6 +784,10 @@ const AdminPortal = () => {
           {/* NDA Tab */}
           <TabsContent value="nda">
             <NdaManager investors={investors} />
+          </TabsContent>
+          {/* Email Tab */}
+          <TabsContent value="email">
+            <EmailInbox />
           </TabsContent>
         </Tabs>
       </main>

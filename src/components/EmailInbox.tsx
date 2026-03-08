@@ -14,8 +14,12 @@ import { format } from "date-fns";
 import {
   Mail, RefreshCw, Send, Reply, Inbox, ArrowUpRight,
   Loader2, Search, Paperclip, ChevronLeft, Plus,
-  Tag, Briefcase, Download, FileText, Image, File, FileSpreadsheet
+  Tag, Briefcase, Download, FileText, Image, File, FileSpreadsheet, Trash2
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Email {
   id: string;

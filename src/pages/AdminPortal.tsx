@@ -183,6 +183,37 @@ const AdminPortal = () => {
     }
   };
 
+  const handleCreateInvestor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingInvestor(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-investor`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(newInvestor),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        toast({ title: "Error", description: result.error, variant: "destructive" });
+      } else {
+        toast({ title: "Investor created", description: `${newInvestor.full_name} can now log in with their credentials.` });
+        setNewInvestor({ email: "", password: "", full_name: "", company: "", phone: "" });
+        setCreateInvestorOpen(false);
+        fetchAll();
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+    setCreatingInvestor(false);
+  };
+
   const handleAddNote = async (dealId: string) => {
     if (!newNoteContent.trim() || !user) return;
     const { error } = await supabase.from("deal_notes").insert({

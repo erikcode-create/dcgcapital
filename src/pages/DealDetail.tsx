@@ -221,6 +221,78 @@ const DealDetail = () => {
     }
   };
 
+  const handleOverviewUpload = async (file: File) => {
+    setAnalyzingOverview(true);
+    setAiSuggestions(null);
+    try {
+      const filePath = `${deal.id}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage.from("pitch-decks").upload(filePath, file);
+      if (uploadError) throw uploadError;
+
+      const { data: insertedDoc, error: insertError } = await (supabase as any).from("deal_documents").insert({
+        deal_id: deal.id, file_name: file.name, file_path: filePath, file_size: file.size,
+        content_type: file.type || "application/octet-stream", document_type: "other",
+        uploaded_by: user?.id, source: "manual",
+      }).select().single();
+      if (insertError) throw insertError;
+
+      toast({ title: "Document uploaded", description: `Analyzing ${file.name} with AI...` });
+      fetchRelated();
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data: analysisData, error: analysisError } = await supabase.functions.invoke("analyze-document", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+        body: { document_id: insertedDoc.id, extract_deal_fields: true },
+      });
+
+      if (analysisError) {
+        toast({ title: "Analysis failed", description: analysisError.message, variant: "destructive" });
+      } else if (analysisData?.suggested_fields) {
+        // Filter out null suggestions
+        const filtered: Record<string, any> = {};
+        for (const [key, value] of Object.entries(analysisData.suggested_fields)) {
+          if (value !== null && value !== undefined && value !== "") {
+            filtered[key] = value;
+          }
+        }
+        if (Object.keys(filtered).length > 0) {
+          setAiSuggestions(filtered);
+          toast({ title: "AI Suggestions Ready", description: "Review suggested updates below" });
+        } else {
+          toast({ title: "AI Analysis Complete", description: "No new field suggestions from this document" });
+        }
+        fetchRelated();
+      }
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setAnalyzingOverview(false);
+    }
+  };
+
+  const applyAiSuggestion = async (field: string, value: any) => {
+    const { error } = await supabase.from("deals").update({ [field]: value }).eq("id", deal.id);
+    if (!error) {
+      setDeal({ ...deal, [field]: value });
+      setEditData({ ...editData, [field]: value });
+      const remaining = { ...aiSuggestions };
+      delete remaining[field];
+      setAiSuggestions(Object.keys(remaining).length > 0 ? remaining : null);
+      toast({ title: "Field updated", description: `${field} updated from AI suggestion` });
+    }
+  };
+
+  const applyAllSuggestions = async () => {
+    if (!aiSuggestions) return;
+    const { error } = await supabase.from("deals").update(aiSuggestions).eq("id", deal.id);
+    if (!error) {
+      setDeal({ ...deal, ...aiSuggestions });
+      setEditData({ ...editData, ...aiSuggestions });
+      setAiSuggestions(null);
+      toast({ title: "All suggestions applied" });
+    }
+  };
+
   const handleAddNote = async () => {
     if (!newNoteContent.trim() || !user || !deal) return;
     const { error } = await supabase.from("deal_notes").insert({

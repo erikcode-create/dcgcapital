@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, TrendingUp, MessageSquare, Heart, User, ArrowLeft, Eye, Download } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import NdaSigning from "@/components/NdaSigning";
 
 const InvestorPortal = () => {
   const { user, profile, userRole, signOut } = useAuth();
@@ -16,24 +17,43 @@ const InvestorPortal = () => {
   const [deals, setDeals] = useState<any[]>([]);
   const [messages, setMessages] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [ndaSigned, setNdaSigned] = useState<boolean | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchDeals();
+    if (user) {
+      if (isAdminViewing) {
+        setNdaSigned(true);
+        fetchDeals();
+      } else {
+        checkNda();
+      }
+    }
   }, [user]);
+
+  const checkNda = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("nda_signatures")
+      .select("id")
+      .eq("investor_id", user.id)
+      .limit(1);
+    const signed = (data && data.length > 0);
+    setNdaSigned(signed);
+    if (signed) fetchDeals();
+    else setLoading(false);
+  };
 
   const fetchDeals = async () => {
     if (!user) return;
     
     if (isAdminViewing) {
-      // Admin sees ALL deals
       const { data } = await supabase
         .from("deals")
         .select("*")
         .order("created_at", { ascending: false });
       if (data) setDeals(data);
     } else {
-      // Investor sees only assigned deals
       const { data } = await supabase
         .from("deal_assignments")
         .select("deal_id, deals(*)")
@@ -107,6 +127,35 @@ const InvestorPortal = () => {
       default: return "bg-muted text-muted-foreground border-border";
     }
   };
+
+  // Show NDA signing screen if not signed
+  if (ndaSigned === false && !isAdminViewing) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border bg-card">
+          <div className="container mx-auto flex h-16 items-center justify-between px-6">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded bg-gradient-gold" />
+              <div>
+                <h2 className="font-display text-lg font-semibold text-card-foreground">Investor Portal</h2>
+                <p className="font-body text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Fitzpatrick Capital Partners</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span className="font-body text-sm text-muted-foreground">{profile?.full_name || user?.email}</span>
+              </div>
+              <Button variant="outline" size="sm" onClick={signOut}>
+                <LogOut className="mr-2 h-4 w-4" /> Sign Out
+              </Button>
+            </div>
+          </div>
+        </header>
+        <NdaSigning onSigned={() => { setNdaSigned(true); fetchDeals(); }} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

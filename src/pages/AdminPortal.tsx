@@ -19,6 +19,7 @@ import {
   Building2, DollarSign, TrendingUp, Eye, Edit, ChevronRight, ArrowRight,
   Briefcase, MapPin, Phone, Mail, FileText, Clock, User, Upload, Loader2, Download
 } from "lucide-react";
+import NdaManager from "@/components/NdaManager";
 import { format } from "date-fns";
 
 const PIPELINE_STAGES = [
@@ -434,6 +435,7 @@ const AdminPortal = () => {
               <TabsTrigger value="investors" className="font-body">Investors</TabsTrigger>
               <TabsTrigger value="interest" className="font-body">Interest</TabsTrigger>
               <TabsTrigger value="messages" className="font-body">Messages</TabsTrigger>
+              <TabsTrigger value="nda" className="font-body">NDA</TabsTrigger>
             </TabsList>
             <div className="flex gap-2">
               <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
@@ -775,6 +777,10 @@ const AdminPortal = () => {
                 <Card className="border-border"><CardContent className="py-16 text-center"><MessageSquare className="mx-auto h-12 w-12 text-muted-foreground/30" /><p className="font-body mt-4 text-muted-foreground">No messages yet</p></CardContent></Card>
               )}
             </div>
+          </TabsContent>
+          {/* NDA Tab */}
+          <TabsContent value="nda">
+            <NdaManager investors={investors} />
           </TabsContent>
         </Tabs>
       </main>

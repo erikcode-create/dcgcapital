@@ -161,7 +161,7 @@ const InvestorPortal = () => {
     <div className="min-h-screen bg-background">
       {/* Admin Preview Banner */}
       {isAdminViewing && (
-        <div className="bg-gradient-gold px-6 py-2 text-center">
+        <div className="bg-gradient-royal px-6 py-2 text-center">
           <div className="container mx-auto flex items-center justify-center gap-3">
             <Eye className="h-4 w-4 text-accent-foreground" />
             <span className="font-body text-sm font-medium text-accent-foreground">Admin Preview — You're viewing the investor portal as an admin</span>

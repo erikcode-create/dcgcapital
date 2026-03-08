@@ -32,7 +32,7 @@ const Index = () => {
       <nav className="fixed top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto flex h-20 items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded bg-gradient-gold" />
+            <div className="h-10 w-10 rounded bg-gradient-royal" />
             <div>
               <h2 className="font-display text-xl font-semibold tracking-tight text-foreground">Fitzpatrick</h2>
               <p className="font-body text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Capital Partners</p>
@@ -54,21 +54,21 @@ const Index = () => {
       </nav>
 
       {/* Hero */}
-      <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-navy pt-20">
+      <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-dark pt-20">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-accent/20 blur-[120px]" />
           <div className="absolute bottom-1/4 right-1/4 h-64 w-64 rounded-full bg-accent/10 blur-[100px]" />
         </div>
         <div className="container relative z-10 mx-auto px-6 text-center">
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
-            <p className="font-body mb-6 text-sm uppercase tracking-[0.3em] text-maroon-light">Private Equity</p>
+            <p className="font-body mb-6 text-sm uppercase tracking-[0.3em] text-royal-light">Private Equity</p>
           </motion.div>
           <motion.h1
             initial="hidden" animate="visible" variants={fadeUp} custom={1}
             className="font-display mx-auto max-w-4xl text-5xl font-light leading-tight text-primary-foreground md:text-7xl lg:text-8xl"
           >
             Building Enduring{" "}
-            <span className="text-gradient-gold font-medium">Value</span>
+            <span className="text-gradient-royal font-medium">Value</span>
           </motion.h1>
           <motion.p
             initial="hidden" animate="visible" variants={fadeUp} custom={2}
@@ -79,7 +79,7 @@ const Index = () => {
           </motion.p>
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3} className="mt-12 flex items-center justify-center gap-4">
             <a href="#about">
-              <Button size="lg" className="bg-gradient-gold font-body text-accent-foreground hover:opacity-90">
+              <Button size="lg" className="bg-gradient-royal font-body text-accent-foreground hover:opacity-90">
                 Learn More <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </a>
@@ -98,7 +98,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
             <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-accent">About Us</p>
-            <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">A Partnership Built on <span className="text-gradient-gold font-medium">Integrity</span></h2>
+            <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">A Partnership Built on <span className="text-gradient-royal font-medium">Integrity</span></h2>
             <p className="font-body mt-8 text-lg leading-relaxed text-muted-foreground">
               Founded with a commitment to disciplined investing and operational excellence, Fitzpatrick Capital Partners
               seeks to create lasting value for our investors and portfolio companies. We bring decades of combined experience
@@ -123,11 +123,11 @@ const Index = () => {
       </section>
 
       {/* Strategy */}
-      <section id="strategy" className="bg-gradient-navy py-32">
+      <section id="strategy" className="bg-gradient-dark py-32">
         <div className="container mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
-            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-maroon-light">Investment Strategy</p>
-            <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">Focused on the <span className="text-gradient-gold font-medium">Middle Market</span></h2>
+            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-royal-light">Investment Strategy</p>
+            <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">Focused on the <span className="text-gradient-royal font-medium">Middle Market</span></h2>
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             {[
@@ -138,7 +138,7 @@ const Index = () => {
             ].map((item, i) => (
               <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i + 1}
                 className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/5 p-8 backdrop-blur-sm">
-                <item.icon className="h-8 w-8 text-maroon" />
+                <item.icon className="h-8 w-8 text-royal" />
                 <h3 className="font-display mt-6 text-xl font-medium text-primary-foreground">{item.title}</h3>
                 <p className="font-body mt-3 text-sm text-primary-foreground/50">{item.desc}</p>
               </motion.div>
@@ -147,11 +147,11 @@ const Index = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={5} className="mx-auto mt-16 max-w-2xl">
             <div className="grid grid-cols-2 gap-8 rounded-xl border border-primary-foreground/10 bg-primary-foreground/5 p-8 text-center">
               <div>
-                <p className="font-display text-3xl font-semibold text-maroon">$25M – $150M</p>
+                <p className="font-display text-3xl font-semibold text-royal">$25M – $150M</p>
                 <p className="font-body mt-2 text-sm text-primary-foreground/50">Enterprise Value</p>
               </div>
               <div>
-                <p className="font-display text-3xl font-semibold text-maroon">$10M – $75M</p>
+                <p className="font-display text-3xl font-semibold text-royal">$10M – $75M</p>
                 <p className="font-body mt-2 text-sm text-primary-foreground/50">Equity Investment</p>
               </div>
             </div>
@@ -164,7 +164,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
             <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-accent">Our Team</p>
-            <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">Experienced <span className="text-gradient-gold font-medium">Leadership</span></h2>
+            <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">Experienced <span className="text-gradient-royal font-medium">Leadership</span></h2>
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-3">
             {[
@@ -174,7 +174,7 @@ const Index = () => {
             ].map((member, i) => (
               <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i + 1}
                 className="group rounded-xl border border-border bg-card p-8 text-center transition-all hover:border-accent/30">
-                <div className="mx-auto h-24 w-24 rounded-full bg-gradient-gold opacity-80" />
+                <div className="mx-auto h-24 w-24 rounded-full bg-gradient-royal opacity-80" />
                 <h3 className="font-display mt-6 text-2xl font-medium text-card-foreground">{member.name}</h3>
                 <p className="font-body mt-1 text-sm font-medium text-accent">{member.title}</p>
                 <p className="font-body mt-4 text-sm leading-relaxed text-muted-foreground">{member.bio}</p>
@@ -185,11 +185,11 @@ const Index = () => {
       </section>
 
       {/* Track Record */}
-      <section id="track-record" className="bg-gradient-navy py-32">
+      <section id="track-record" className="bg-gradient-dark py-32">
         <div className="container mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
-            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-maroon-light">Track Record</p>
-            <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">Proven <span className="text-gradient-gold font-medium">Results</span></h2>
+            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-royal-light">Track Record</p>
+            <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">Proven <span className="text-gradient-royal font-medium">Results</span></h2>
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-4">
             {[
@@ -200,7 +200,7 @@ const Index = () => {
             ].map((stat, i) => (
               <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i + 1}
                 className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/5 p-8 text-center">
-                <p className="font-display text-4xl font-semibold text-maroon md:text-5xl">{stat.value}</p>
+                <p className="font-display text-4xl font-semibold text-royal md:text-5xl">{stat.value}</p>
                 <p className="font-body mt-3 text-sm text-primary-foreground/50">{stat.label}</p>
               </motion.div>
             ))}
@@ -215,7 +215,7 @@ const Index = () => {
             <div className="grid gap-16 md:grid-cols-2">
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
                 <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-accent">Contact</p>
-                <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">Get in <span className="text-gradient-gold font-medium">Touch</span></h2>
+                <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">Get in <span className="text-gradient-royal font-medium">Touch</span></h2>
                 <p className="font-body mt-6 text-muted-foreground">
                   Interested in learning more about Fitzpatrick Capital Partners? We welcome inquiries
                   from prospective investors, management teams, and intermediaries.
@@ -265,7 +265,7 @@ const Index = () => {
                       className="mt-2 border-border bg-card"
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-gradient-gold font-body text-accent-foreground hover:opacity-90">
+                  <Button type="submit" className="w-full bg-gradient-royal font-body text-accent-foreground hover:opacity-90">
                     Send Message
                   </Button>
                 </form>
@@ -280,7 +280,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded bg-gradient-gold" />
+              <div className="h-8 w-8 rounded bg-gradient-royal" />
               <div>
                 <h3 className="font-display text-lg font-semibold text-card-foreground">Fitzpatrick Capital Partners</h3>
               </div>

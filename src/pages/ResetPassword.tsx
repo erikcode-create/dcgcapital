@@ -34,7 +34,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-navy p-6">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-dark p-6">
       <Card className="w-full max-w-md border-primary-foreground/10 bg-primary-foreground/5 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="font-display text-xl text-primary-foreground">Set New Password</CardTitle>
@@ -46,7 +46,7 @@ const ResetPassword = () => {
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                 required minLength={8} className="mt-1 border-primary-foreground/10 bg-primary-foreground/5 text-primary-foreground" />
             </div>
-            <Button type="submit" disabled={loading} className="w-full bg-gradient-gold text-accent-foreground">
+            <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
               {loading ? "Updating..." : "Update Password"}
             </Button>
           </form>

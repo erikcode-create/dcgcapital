@@ -135,7 +135,7 @@ const InvestorPortal = () => {
         <header className="border-b border-border bg-card">
           <div className="container mx-auto flex h-16 items-center justify-between px-6">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded bg-gradient-gold" />
+              <div className="h-8 w-8 rounded bg-gradient-royal" />
               <div>
                 <h2 className="font-display text-lg font-semibold text-card-foreground">Investor Portal</h2>
                 <p className="font-body text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Fitzpatrick Capital Partners</p>
@@ -161,7 +161,7 @@ const InvestorPortal = () => {
     <div className="min-h-screen bg-background">
       {/* Admin Preview Banner */}
       {isAdminViewing && (
-        <div className="bg-gradient-gold px-6 py-2 text-center">
+        <div className="bg-gradient-royal px-6 py-2 text-center">
           <div className="container mx-auto flex items-center justify-center gap-3">
             <Eye className="h-4 w-4 text-accent-foreground" />
             <span className="font-body text-sm font-medium text-accent-foreground">Admin Preview — You're viewing the investor portal as an admin</span>
@@ -175,7 +175,7 @@ const InvestorPortal = () => {
       <header className="border-b border-border bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded bg-gradient-gold" />
+            <div className="h-8 w-8 rounded bg-gradient-royal" />
             <div>
               <h2 className="font-display text-lg font-semibold text-card-foreground">Investor Portal</h2>
               <p className="font-body text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Fitzpatrick Capital Partners</p>
@@ -196,7 +196,7 @@ const InvestorPortal = () => {
       <main className="container mx-auto px-6 py-10">
         <div className="mb-10">
           <h1 className="font-display text-3xl font-light text-foreground">
-            Welcome back, <span className="text-gradient-gold font-medium">{profile?.full_name || "Investor"}</span>
+            Welcome back, <span className="text-gradient-royal font-medium">{profile?.full_name || "Investor"}</span>
           </h1>
           <p className="font-body mt-2 text-muted-foreground">Review your assigned deals and opportunities below.</p>
         </div>

@@ -132,7 +132,7 @@ const NdaManager = ({ investors }: NdaManagerProps) => {
                 className="font-body text-sm leading-relaxed"
                 placeholder="Enter the NDA contract language..."
               />
-              <Button onClick={handleSave} disabled={saving} className="bg-gradient-gold text-accent-foreground">
+              <Button onClick={handleSave} disabled={saving} className="bg-gradient-royal text-accent-foreground">
                 <Save className="mr-2 h-4 w-4" />{saving ? "Saving..." : "Save Template"}
               </Button>
             </div>

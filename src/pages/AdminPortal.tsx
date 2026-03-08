@@ -386,7 +386,7 @@ const AdminPortal = () => {
       <header className="border-b border-border bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded bg-gradient-gold" />
+            <div className="h-8 w-8 rounded bg-gradient-royal" />
             <div>
               <h2 className="font-display text-lg font-semibold text-card-foreground">Deal Flow CRM</h2>
               <p className="font-body text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Fitzpatrick Capital Partners</p>
@@ -415,7 +415,7 @@ const AdminPortal = () => {
             { label: "Interest", value: interests.length, icon: Heart },
             { label: "Messages", value: allMessages.length, icon: MessageSquare },
           ].map((stat, i) => (
-            <Card key={i} className={`border-border ${stat.accent ? "bg-gradient-gold" : ""}`}>
+            <Card key={i} className={`border-border ${stat.accent ? "bg-gradient-royal" : ""}`}>
               <CardContent className="flex items-center gap-4 p-5">
                 <stat.icon className={`h-7 w-7 ${stat.accent ? "text-accent-foreground" : "text-accent"}`} />
                 <div>
@@ -459,7 +459,7 @@ const AdminPortal = () => {
                         <SelectContent>{investors.map(i => <SelectItem key={i.id} value={i.id}>{i.full_name || i.email}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
-                    <Button onClick={handleAssignDeal} className="w-full bg-gradient-gold text-accent-foreground">Assign</Button>
+                    <Button onClick={handleAssignDeal} className="w-full bg-gradient-royal text-accent-foreground">Assign</Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -500,7 +500,7 @@ const AdminPortal = () => {
               </Dialog>
               <Dialog open={dealDialogOpen} onOpenChange={setDealDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="bg-gradient-gold text-accent-foreground"><Plus className="mr-2 h-4 w-4" />New Deal</Button>
+                  <Button size="sm" className="bg-gradient-royal text-accent-foreground"><Plus className="mr-2 h-4 w-4" />New Deal</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                   <DialogHeader><DialogTitle className="font-display text-2xl">Create New Deal</DialogTitle></DialogHeader>
@@ -541,7 +541,7 @@ const AdminPortal = () => {
                     </div>
                     <div><Label>Description</Label><Textarea value={newDeal.description} onChange={(e) => setNewDeal({ ...newDeal, description: e.target.value })} maxLength={2000} className="mt-1" rows={3} placeholder="Brief overview of the opportunity..." /></div>
                     <div><Label>Internal Notes</Label><Textarea value={newDeal.notes} onChange={(e) => setNewDeal({ ...newDeal, notes: e.target.value })} maxLength={2000} className="mt-1" rows={2} placeholder="Initial impressions, sourcing details..." /></div>
-                    <Button type="submit" className="w-full bg-gradient-gold text-accent-foreground">Create Deal</Button>
+                    <Button type="submit" className="w-full bg-gradient-royal text-accent-foreground">Create Deal</Button>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -677,7 +677,7 @@ const AdminPortal = () => {
                 </Button>
                 <Dialog open={createInvestorOpen} onOpenChange={setCreateInvestorOpen}>
                   <DialogTrigger asChild>
-                    <Button size="sm" className="bg-gradient-gold text-accent-foreground"><Plus className="mr-2 h-4 w-4" />Add Investor</Button>
+                    <Button size="sm" className="bg-gradient-royal text-accent-foreground"><Plus className="mr-2 h-4 w-4" />Add Investor</Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader><DialogTitle className="font-display text-xl">Create Investor Account</DialogTitle></DialogHeader>
@@ -687,7 +687,7 @@ const AdminPortal = () => {
                       <div><Label>Temporary Password *</Label><Input type="text" value={newInvestor.password} onChange={(e) => setNewInvestor({ ...newInvestor, password: e.target.value })} required minLength={8} className="mt-1" placeholder="Min 8 characters" /></div>
                       <div><Label>Company</Label><Input value={newInvestor.company} onChange={(e) => setNewInvestor({ ...newInvestor, company: e.target.value })} maxLength={100} className="mt-1" /></div>
                       <div><Label>Phone</Label><Input value={newInvestor.phone} onChange={(e) => setNewInvestor({ ...newInvestor, phone: e.target.value })} maxLength={20} className="mt-1" /></div>
-                      <Button type="submit" disabled={creatingInvestor} className="w-full bg-gradient-gold text-accent-foreground">
+                      <Button type="submit" disabled={creatingInvestor} className="w-full bg-gradient-royal text-accent-foreground">
                         {creatingInvestor ? "Creating..." : "Create Investor Account"}
                       </Button>
                       <p className="font-body text-xs text-muted-foreground text-center">The investor will be able to log in immediately with these credentials.</p>
@@ -949,7 +949,7 @@ const AdminPortal = () => {
                     <div><Label className="text-xs">Description</Label><Textarea value={editingDeal.description || ""} onChange={(e) => setEditingDeal({ ...editingDeal, description: e.target.value })} className="mt-1" rows={3} /></div>
                     <div><Label className="text-xs">Contact</Label><Input value={editingDeal.contact_name || ""} onChange={(e) => setEditingDeal({ ...editingDeal, contact_name: e.target.value })} className="mt-1" placeholder="Name" /></div>
                     <div><Label className="text-xs">Contact Email</Label><Input value={editingDeal.contact_email || ""} onChange={(e) => setEditingDeal({ ...editingDeal, contact_email: e.target.value })} className="mt-1" /></div>
-                    <Button onClick={handleUpdateDeal} className="w-full bg-gradient-gold text-accent-foreground">Save Changes</Button>
+                    <Button onClick={handleUpdateDeal} className="w-full bg-gradient-royal text-accent-foreground">Save Changes</Button>
                   </div>
                 ) : (
                   <div className="space-y-3">

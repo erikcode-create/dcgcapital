@@ -82,7 +82,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-navy p-6">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-dark p-6">
       <div className="absolute inset-0 opacity-10">
         <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-accent/20 blur-[120px]" />
       </div>
@@ -94,7 +94,7 @@ const Login = () => {
         </Link>
 
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-gold">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-royal">
             <Shield className="h-6 w-6 text-accent-foreground" />
           </div>
           <h1 className="font-display text-3xl font-light text-primary-foreground">Investor Portal</h1>
@@ -114,7 +114,7 @@ const Login = () => {
                   <Input type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)}
                     required maxLength={255} className="mt-1 border-primary-foreground/10 bg-primary-foreground/5 text-primary-foreground" />
                 </div>
-                <Button type="submit" disabled={loading} className="w-full bg-gradient-gold text-accent-foreground">
+                <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
                   {loading ? "Sending..." : "Send Reset Link"}
                 </Button>
                 <button type="button" onClick={() => setShowForgot(false)}
@@ -148,7 +148,7 @@ const Login = () => {
                       <Input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}
                         required className="mt-1 border-primary-foreground/10 bg-primary-foreground/5 text-primary-foreground" />
                     </div>
-                    <Button type="submit" disabled={loading} className="w-full bg-gradient-gold text-accent-foreground">
+                    <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
                       {loading ? "Signing in..." : "Sign In"}
                     </Button>
                     <button type="button" onClick={() => setShowForgot(true)}
@@ -182,7 +182,7 @@ const Login = () => {
                       <Input type="password" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)}
                         required minLength={8} className="mt-1 border-primary-foreground/10 bg-primary-foreground/5 text-primary-foreground" />
                     </div>
-                    <Button type="submit" disabled={loading} className="w-full bg-gradient-gold text-accent-foreground">
+                    <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
                       {loading ? "Creating..." : "Request Access"}
                     </Button>
                   </form>

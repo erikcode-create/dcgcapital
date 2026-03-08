@@ -212,7 +212,7 @@ const NdaSigning = ({ onSigned }: NdaSigningProps) => {
             <Button
               onClick={handleSign}
               disabled={!signatureName.trim() || !agreed || !hasDrawn || signing}
-              className="bg-gradient-gold text-accent-foreground px-8"
+              className="bg-gradient-royal text-accent-foreground px-8"
             >
               {signing ? "Signing..." : "Sign Agreement"}
             </Button>

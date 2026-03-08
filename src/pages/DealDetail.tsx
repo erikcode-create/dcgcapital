@@ -407,10 +407,10 @@ const DealDetail = () => {
         {/* Quick stats */}
         <div className="mb-6 grid gap-3 md:grid-cols-4">
           {[
-            { label: "Enterprise Value", value: formatCurrency(deal.enterprise_value), icon: DollarSign },
-            { label: "EBITDA", value: formatCurrency(deal.ebitda), icon: TrendingUp },
-            { label: "Revenue", value: formatCurrency(deal.revenue), icon: Briefcase },
-            { label: "Investment", value: formatCurrency(deal.investment_amount), icon: DollarSign },
+            { label: "Enterprise Value", value: formatCurrencyCompact(deal.enterprise_value), icon: DollarSign },
+            { label: "EBITDA", value: formatCurrencyCompact(deal.ebitda), icon: TrendingUp },
+            { label: "Revenue", value: formatCurrencyCompact(deal.revenue), icon: Briefcase },
+            { label: "Investment", value: formatCurrencyCompact(deal.investment_amount), icon: DollarSign },
           ].map((s, i) => (
             <Card key={i} className="border-border">
               <CardContent className="flex items-center gap-3 p-4">

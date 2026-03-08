@@ -265,7 +265,7 @@ const Index = () => {
                       className="mt-2 border-border bg-card"
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-gradient-gold font-body text-accent-foreground hover:opacity-90">
+                  <Button type="submit" className="w-full bg-gradient-royal font-body text-accent-foreground hover:opacity-90">
                     Send Message
                   </Button>
                 </form>

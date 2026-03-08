@@ -638,7 +638,7 @@ const AdminPortal = () => {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-body text-sm font-medium text-foreground">{(msg.profiles as any)?.full_name || (msg.profiles as any)?.email}</p>
+                        <p className="font-body text-sm font-medium text-foreground">{msg.sender_profile?.full_name || msg.sender_profile?.email}</p>
                         <p className="font-body text-xs text-muted-foreground">Re: {(msg.deals as any)?.name} · {msg.created_at ? format(new Date(msg.created_at), "MMM d h:mm a") : ""}</p>
                       </div>
                     </div>

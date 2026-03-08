@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   LogOut, Plus, Trash2, Users, BarChart3, MessageSquare, Heart, Send,
   Building2, DollarSign, TrendingUp, Eye, Edit, ChevronRight, ArrowRight,
-  Briefcase, MapPin, Phone, Mail, FileText, Clock, User
+  Briefcase, MapPin, Phone, Mail, FileText, Clock, User, Upload, Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -67,6 +67,8 @@ const AdminPortal = () => {
   const [newNoteContent, setNewNoteContent] = useState("");
   const [newInvestor, setNewInvestor] = useState({ email: "", password: "", full_name: "", company: "", phone: "" });
   const [creatingInvestor, setCreatingInvestor] = useState(false);
+  const [uploadingDeck, setUploadingDeck] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const navigate = useNavigate();
   const [newDeal, setNewDeal] = useState({
     name: "", description: "", sector: "", target_return: "", status: "active",
@@ -254,6 +256,49 @@ const AdminPortal = () => {
     setCreatingInvestor(false);
   };
 
+  const handlePitchDeckUpload = async (file: File) => {
+    setUploadingDeck(true);
+    try {
+      const filePath = `${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("pitch-decks")
+        .upload(filePath, file);
+
+      if (uploadError) {
+        toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+        setUploadingDeck(false);
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-pitch-deck`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ file_path: filePath }),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        toast({ title: "Error", description: result.error, variant: "destructive" });
+      } else {
+        toast({
+          title: "Deal created from pitch deck!",
+          description: `"${result.deal?.name}" has been added to your pipeline.`,
+        });
+        setUploadDialogOpen(false);
+        fetchAll();
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+    setUploadingDeck(false);
+  };
+
   const handleAddNote = async (dealId: string) => {
     if (!newNoteContent.trim() || !user) return;
     const { error } = await supabase.from("deal_notes").insert({
@@ -387,6 +432,41 @@ const AdminPortal = () => {
                       </Select>
                     </div>
                     <Button onClick={handleAssignDeal} className="w-full bg-gradient-gold text-accent-foreground">Assign</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm"><Upload className="mr-2 h-4 w-4" />Upload Deck</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle className="font-display">Upload Pitch Deck</DialogTitle></DialogHeader>
+                  <p className="font-body text-sm text-muted-foreground">
+                    Upload a pitch deck or investment memo (PDF, PPTX, DOCX) and AI will automatically extract deal details and create a new deal in your pipeline.
+                  </p>
+                  <div className="mt-4">
+                    {uploadingDeck ? (
+                      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-accent/30 bg-accent/5 py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+                        <p className="font-body mt-3 text-sm text-muted-foreground">Analyzing pitch deck with AI...</p>
+                        <p className="font-body mt-1 text-xs text-muted-foreground">This may take 15-30 seconds</p>
+                      </div>
+                    ) : (
+                      <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-12 transition-colors hover:border-accent/50 hover:bg-accent/5">
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <p className="font-body mt-3 text-sm font-medium text-foreground">Click to upload or drag & drop</p>
+                        <p className="font-body mt-1 text-xs text-muted-foreground">PDF, PPTX, or DOCX up to 20MB</p>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".pdf,.pptx,.ppt,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePitchDeckUpload(file);
+                          }}
+                        />
+                      </label>
+                    )}
                   </div>
                 </DialogContent>
               </Dialog>

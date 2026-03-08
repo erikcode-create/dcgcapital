@@ -144,8 +144,26 @@ const DealDetail = () => {
     }
   }, [id]);
 
+  const fetchAllDeals = useCallback(async () => {
+    const { data } = await supabase.from("deals").select("id, name").order("name");
+    if (data) setAllDeals(data.filter(d => d.id !== id));
+  }, [id]);
+
+  const handleReassignEmail = async (dealEmailId: string, emailId: string, newDealId: string) => {
+    const { error } = await supabase.from("deal_emails").update({ deal_id: newDealId }).eq("id", dealEmailId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Email moved to another deal" });
+      setReassignEmailId(null);
+      setReassignDealId("");
+      fetchRelated();
+    }
+  };
+
   useEffect(() => { fetchDeal(); }, [fetchDeal]);
   useEffect(() => { fetchRelated(); }, [fetchRelated]);
+  useEffect(() => { fetchAllDeals(); }, [fetchAllDeals]);
 
   const handleSave = async () => {
     if (!deal) return;

@@ -82,13 +82,14 @@ const AdminPortal = () => {
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [dealsRes, profilesRes, rolesRes, interestsRes, messagesRes, notesRes] = await Promise.all([
+    const [dealsRes, profilesRes, rolesRes, interestsRes, messagesRes, notesRes, assignmentsRes] = await Promise.all([
       supabase.from("deals").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("*"),
       supabase.from("user_roles").select("*"),
       supabase.from("interest_expressions").select("*, deals(name)"),
       supabase.from("messages").select("*, deals(name)").order("created_at", { ascending: false }),
       supabase.from("deal_notes").select("*").order("created_at", { ascending: false }),
+      supabase.from("deal_assignments").select("*"),
     ]);
     if (dealsRes.data) setDeals(dealsRes.data);
 

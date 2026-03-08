@@ -93,6 +93,7 @@ export type Database = {
           investment_amount: number | null
           name: string
           notes: string | null
+          pitch_deck_path: string | null
           revenue: number | null
           sector: string | null
           stage: string
@@ -114,6 +115,7 @@ export type Database = {
           investment_amount?: number | null
           name: string
           notes?: string | null
+          pitch_deck_path?: string | null
           revenue?: number | null
           sector?: string | null
           stage?: string
@@ -135,6 +137,7 @@ export type Database = {
           investment_amount?: number | null
           name?: string
           notes?: string | null
+          pitch_deck_path?: string | null
           revenue?: number | null
           sector?: string | null
           stage?: string

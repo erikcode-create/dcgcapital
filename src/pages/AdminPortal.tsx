@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   LogOut, Plus, Trash2, Users, BarChart3, MessageSquare, Heart, Send,
   Building2, DollarSign, TrendingUp, Eye, Edit, ChevronRight, ArrowRight,
-  Briefcase, MapPin, Phone, Mail, FileText, Clock, User, Upload, Loader2
+  Briefcase, MapPin, Phone, Mail, FileText, Clock, User, Upload, Loader2, Download
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -297,6 +297,27 @@ const AdminPortal = () => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
     setUploadingDeck(false);
+  };
+
+  const handleDownloadDeck = async (filePath: string, dealName: string) => {
+    try {
+      const { data, error } = await supabase.storage.from("pitch-decks").download(filePath);
+      if (error || !data) {
+        toast({ title: "Error", description: error?.message || "Failed to download", variant: "destructive" });
+        return;
+      }
+      const ext = filePath.split(".").pop() || "pdf";
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${dealName.replace(/[^a-zA-Z0-9]/g, "_")}_pitch_deck.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
   const handleAddNote = async (dealId: string) => {
@@ -594,15 +615,16 @@ const AdminPortal = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="font-body">Company</TableHead>
-                    <TableHead className="font-body">Sector</TableHead>
-                    <TableHead className="font-body">Stage</TableHead>
-                    <TableHead className="font-body">Type</TableHead>
-                    <TableHead className="font-body text-right">EV</TableHead>
-                    <TableHead className="font-body text-right">EBITDA</TableHead>
-                    <TableHead className="font-body text-right">Investment</TableHead>
-                    <TableHead className="font-body">Target</TableHead>
-                    <TableHead className="font-body">Date</TableHead>
-                    <TableHead className="font-body"></TableHead>
+                     <TableHead className="font-body">Sector</TableHead>
+                     <TableHead className="font-body">Stage</TableHead>
+                     <TableHead className="font-body">Type</TableHead>
+                     <TableHead className="font-body text-right">EV</TableHead>
+                     <TableHead className="font-body text-right">EBITDA</TableHead>
+                     <TableHead className="font-body text-right">Investment</TableHead>
+                     <TableHead className="font-body">Target</TableHead>
+                     <TableHead className="font-body">Deck</TableHead>
+                     <TableHead className="font-body">Date</TableHead>
+                     <TableHead className="font-body"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -616,6 +638,15 @@ const AdminPortal = () => {
                       <TableCell className="font-body text-right text-sm">{formatCurrency(deal.ebitda)}</TableCell>
                       <TableCell className="font-body text-right text-sm text-accent">{formatCurrency(deal.investment_amount)}</TableCell>
                       <TableCell className="font-body text-sm">{deal.target_return || "—"}</TableCell>
+                      <TableCell>
+                        {deal.pitch_deck_path ? (
+                          <Button variant="ghost" size="sm" className="text-accent" onClick={(e) => { e.stopPropagation(); handleDownloadDeck(deal.pitch_deck_path, deal.name); }}>
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <span className="font-body text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="font-body text-xs text-muted-foreground">{deal.created_at ? format(new Date(deal.created_at), "MMM d") : ""}</TableCell>
                       <TableCell>
                         <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteDeal(deal.id); }} className="text-destructive hover:text-destructive">
@@ -785,6 +816,25 @@ const AdminPortal = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Pitch Deck Download */}
+              {detailDeal.pitch_deck_path && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Pitch Deck</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleDownloadDeck(detailDeal.pitch_deck_path, detailDeal.name)}
+                    >
+                      <Download className="h-4 w-4" />
+                      Download Pitch Deck
+                    </Button>
+                  </div>
+                </>
+              )}
 
               <Separator />
 

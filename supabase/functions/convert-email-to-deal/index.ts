@@ -46,6 +46,15 @@ function guessDocumentType(name: string, mimeType: string): string {
   return "other";
 }
 
+// Map email category to deal category
+function mapCategoryToDealCategory(category: string | null): string {
+  if (!category) return "equity";
+  const lower = category.toLowerCase();
+  if (lower.includes("debt") || lower.includes("credit") || lower.includes("lending")) return "debt";
+  if (lower.includes("revenue") || lower === "revenue_seeking") return "revenue_seeking";
+  return "equity";
+}
+
 const MAILBOX = "data@fitzcap.co";
 
 Deno.serve(async (req) => {
@@ -137,7 +146,6 @@ Deno.serve(async (req) => {
       const filePath = `${Date.now()}-${fileName}`;
       const mimeType = att.contentType || "application/octet-stream";
 
-      // Decode base64 to upload to storage
       const binaryStr = atob(att.contentBytes);
       const bytes = new Uint8Array(binaryStr.length);
       for (let i = 0; i < binaryStr.length; i++) {
@@ -149,18 +157,13 @@ Deno.serve(async (req) => {
         .upload(filePath, bytes.buffer, { contentType: mimeType });
 
       if (!uploadError) {
-        uploadedFiles.push({
-          path: filePath,
-          name: fileName,
-          mimeType,
-          base64: att.contentBytes,
-        });
+        uploadedFiles.push({ path: filePath, name: fileName, mimeType, base64: att.contentBytes });
       } else {
         console.error("Upload error for", fileName, uploadError.message);
       }
     }
 
-    // Build AI prompt with email body and attachment contents
+    // Build AI prompt
     const emailContext = `
 EMAIL SUBJECT: ${email.subject || "(No Subject)"}
 FROM: ${email.from_name || ""} <${email.from_address || ""}>
@@ -169,7 +172,6 @@ BODY:
 ${email.body_text || email.body_preview || ""}
 `;
 
-    // Build message content for AI - include email text + any document attachments
     const userContent: any[] = [
       {
         type: "text",
@@ -183,23 +185,18 @@ Extract all deal information you can find from the email and attachments.`,
       },
     ];
 
-    // Add document attachments as images for AI to analyze
     for (const file of uploadedFiles) {
       const supportedTypes = [
         "application/pdf",
         "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "application/vnd.ms-powerpoint",
-        "image/png",
-        "image/jpeg",
-        "image/gif",
+        "image/png", "image/jpeg", "image/gif",
       ];
       if (supportedTypes.some(t => file.mimeType.includes(t)) || file.mimeType.startsWith("image/")) {
         userContent.push({
           type: "image_url",
-          image_url: {
-            url: `data:${file.mimeType};base64,${file.base64}`,
-          },
+          image_url: { url: `data:${file.mimeType};base64,${file.base64}` },
         });
       }
     }
@@ -229,14 +226,12 @@ Extract all deal information you can find from the email and attachments.`,
   "target_return": "Target return as string or null",
   "contact_name": "Key contact name from the email sender or content",
   "contact_email": "Contact email from the sender",
-  "notes": "Additional key points, investment thesis highlights, risks, summary of the opportunity"
+  "notes": "Additional key points, investment thesis highlights, risks, summary of the opportunity",
+  "category": "One of: equity, debt, revenue_seeking — based on the nature of the deal"
 }
 Return ONLY the JSON object, no markdown, no code fences.`,
           },
-          {
-            role: "user",
-            content: userContent,
-          },
+          { role: "user", content: userContent },
         ],
         temperature: 0.1,
         max_tokens: 2000,
@@ -246,7 +241,6 @@ Return ONLY the JSON object, no markdown, no code fences.`,
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
       console.error("AI error:", errText);
-      // If AI fails, still create a basic deal from email info
     }
 
     let dealData: any = {};
@@ -261,7 +255,9 @@ Return ONLY the JSON object, no markdown, no code fences.`,
       }
     }
 
-    // Fallback: use email info if AI didn't extract
+    // Determine category from AI or email category
+    const dealCategory = dealData.category || mapCategoryToDealCategory(category);
+
     const dealPayload = {
       name: dealData.name || email.subject || "Untitled Deal",
       description: dealData.description || email.body_preview || null,
@@ -281,6 +277,7 @@ Return ONLY the JSON object, no markdown, no code fences.`,
       status: "active",
       created_by: userId,
       source_email_id: email_id,
+      category: dealCategory,
     };
 
     const { data: newDeal, error: insertError } = await supabase
@@ -302,19 +299,40 @@ Return ONLY the JSON object, no markdown, no code fences.`,
         deal_id: newDeal.id,
         file_name: f.name,
         file_path: f.path,
-        file_size: f.base64.length * 0.75, // approximate decoded size
+        file_size: f.base64.length * 0.75,
         content_type: f.mimeType,
         document_type: guessDocumentType(f.name, f.mimeType),
         uploaded_by: userId,
         source: "email",
       }));
 
-      const { error: docsError } = await supabase
-        .from("deal_documents")
-        .insert(docInserts);
+      await supabase.from("deal_documents").insert(docInserts);
+    }
 
-      if (docsError) {
-        console.error("Failed to insert deal documents:", docsError.message);
+    // Link the source email (and all emails in same conversation) to the deal
+    if (newDeal) {
+      // Link source email
+      await supabase.from("deal_emails").upsert({
+        deal_id: newDeal.id,
+        email_id: email_id,
+        linked_by: "auto",
+      }, { onConflict: "deal_id,email_id" });
+
+      // Link all emails in the same conversation
+      if (email.conversation_id) {
+        const { data: conversationEmails } = await supabase
+          .from("emails")
+          .select("id")
+          .eq("conversation_id", email.conversation_id);
+
+        if (conversationEmails && conversationEmails.length > 0) {
+          const linkInserts = conversationEmails.map(ce => ({
+            deal_id: newDeal.id,
+            email_id: ce.id,
+            linked_by: "auto",
+          }));
+          await supabase.from("deal_emails").upsert(linkInserts, { onConflict: "deal_id,email_id" });
+        }
       }
     }
 

@@ -187,6 +187,59 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Auto-link emails to deals by conversation_id
+    // Find all deals that have a source_email with a conversation_id
+    const { data: dealsWithEmails } = await supabase
+      .from("deals")
+      .select("id, source_email_id")
+      .not("source_email_id", "is", null);
+
+    if (dealsWithEmails && dealsWithEmails.length > 0) {
+      // Get conversation_ids for those source emails
+      const sourceEmailIds = dealsWithEmails.map(d => d.source_email_id).filter(Boolean);
+      const { data: sourceEmails } = await supabase
+        .from("emails")
+        .select("id, conversation_id")
+        .in("id", sourceEmailIds)
+        .not("conversation_id", "is", null);
+
+      if (sourceEmails) {
+        const convMap: Record<string, string> = {}; // conversation_id -> deal_id
+        for (const se of sourceEmails) {
+          const deal = dealsWithEmails.find(d => d.source_email_id === se.id);
+          if (deal && se.conversation_id) {
+            convMap[se.conversation_id] = deal.id;
+          }
+        }
+
+        // Find all emails matching those conversation_ids
+        const convIds = Object.keys(convMap);
+        if (convIds.length > 0) {
+          const { data: matchingEmails } = await supabase
+            .from("emails")
+            .select("id, conversation_id")
+            .in("conversation_id", convIds);
+
+          if (matchingEmails) {
+            const linkInserts = matchingEmails
+              .filter(e => e.conversation_id && convMap[e.conversation_id])
+              .map(e => ({
+                deal_id: convMap[e.conversation_id!],
+                email_id: e.id,
+                linked_by: "auto",
+              }));
+
+            if (linkInserts.length > 0) {
+              // Upsert to avoid duplicates
+              await supabase
+                .from("deal_emails")
+                .upsert(linkInserts, { onConflict: "deal_id,email_id" });
+            }
+          }
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({ success: true, fetched: emails.length, sentFetched: sentData.value?.length || 0, inserted }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

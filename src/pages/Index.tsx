@@ -54,7 +54,7 @@ const Index = () => {
       </nav>
 
       {/* Hero */}
-      <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-navy pt-20">
+      <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-dark pt-20">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-accent/20 blur-[120px]" />
           <div className="absolute bottom-1/4 right-1/4 h-64 w-64 rounded-full bg-accent/10 blur-[100px]" />

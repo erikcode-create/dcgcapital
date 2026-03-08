@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft, Trash2, Users, DollarSign, TrendingUp, Edit, Save, X,
   Briefcase, MapPin, Mail, FileText, Clock, User, Loader2, MessageSquare,
-  Building2, Phone, ChevronRight
+  Building2, Phone, ChevronRight, Upload, Sparkles, Check, X as XIcon
 } from "lucide-react";
 import DataRoomSection from "@/components/DataRoomSection";
 import { format } from "date-fns";

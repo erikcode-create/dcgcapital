@@ -787,7 +787,7 @@ const AdminPortal = () => {
           </TabsContent>
           {/* Email Tab */}
           <TabsContent value="email">
-            <EmailInbox />
+            <EmailInbox onDealCreated={fetchAll} />
           </TabsContent>
         </Tabs>
       </main>

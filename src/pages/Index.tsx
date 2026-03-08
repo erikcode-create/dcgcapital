@@ -102,7 +102,7 @@ const Index = () => {
             <p className="font-body mt-8 text-lg leading-relaxed text-muted-foreground">
               Founded with a commitment to disciplined investing and operational excellence, Fitzpatrick Capital Partners
               seeks to create lasting value for our investors and portfolio companies. We bring decades of combined experience
-              in private equity, operations, and strategic growth to every investment we make.
+              in investing, operations, and strategic growth to every opportunity we pursue.
             </p>
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-3">

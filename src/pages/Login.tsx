@@ -102,23 +102,23 @@ const Login = () => {
         </div>
 
         {showForgot ? (
-          <Card className="border-primary-foreground/10 bg-primary-foreground/5 backdrop-blur-sm">
+          <Card className="border-border bg-card backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="font-display text-xl text-primary-foreground">Reset Password</CardTitle>
-              <CardDescription className="text-primary-foreground/50">Enter your email to receive a reset link</CardDescription>
+              <CardTitle className="font-display text-xl text-foreground">Reset Password</CardTitle>
+              <CardDescription className="text-muted-foreground">Enter your email to receive a reset link</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div>
-                  <Label className="text-primary-foreground/70">Email</Label>
+                  <Label className="text-foreground/70">Email</Label>
                   <Input type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)}
-                    required maxLength={255} className="mt-1 border-primary-foreground/10 bg-primary-foreground/5 text-primary-foreground" />
+                    required maxLength={255} className="mt-1 border-border bg-secondary text-foreground" />
                 </div>
                 <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
                   {loading ? "Sending..." : "Send Reset Link"}
                 </Button>
                 <button type="button" onClick={() => setShowForgot(false)}
-                  className="font-body w-full text-center text-sm text-primary-foreground/50 hover:text-primary-foreground">
+                  className="font-body w-full text-center text-sm text-muted-foreground hover:text-foreground">
                   Back to login
                 </button>
               </form>
@@ -126,33 +126,33 @@ const Login = () => {
           </Card>
         ) : (
           <Tabs defaultValue="login">
-            <TabsList className="grid w-full grid-cols-2 bg-primary-foreground/5">
+            <TabsList className="grid w-full grid-cols-2 bg-secondary">
               <TabsTrigger value="login" className="font-body text-sm">Sign In</TabsTrigger>
               <TabsTrigger value="signup" className="font-body text-sm">Request Access</TabsTrigger>
             </TabsList>
             <TabsContent value="login">
-              <Card className="border-primary-foreground/10 bg-primary-foreground/5 backdrop-blur-sm">
+              <Card className="border-border bg-card backdrop-blur-sm">
                 <CardHeader>
-                  <CardTitle className="font-display text-xl text-primary-foreground">Welcome Back</CardTitle>
-                  <CardDescription className="text-primary-foreground/50">Sign in to your investor account</CardDescription>
+                  <CardTitle className="font-display text-xl text-foreground">Welcome Back</CardTitle>
+                  <CardDescription className="text-muted-foreground">Sign in to your investor account</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div>
-                      <Label className="text-primary-foreground/70">Email</Label>
+                      <Label className="text-foreground/70">Email</Label>
                       <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
-                        required maxLength={255} className="mt-1 border-primary-foreground/10 bg-primary-foreground/5 text-primary-foreground" />
+                        required maxLength={255} className="mt-1 border-border bg-secondary text-foreground" />
                     </div>
                     <div>
-                      <Label className="text-primary-foreground/70">Password</Label>
+                      <Label className="text-foreground/70">Password</Label>
                       <Input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}
-                        required className="mt-1 border-primary-foreground/10 bg-primary-foreground/5 text-primary-foreground" />
+                        required className="mt-1 border-border bg-secondary text-foreground" />
                     </div>
                     <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
                       {loading ? "Signing in..." : "Sign In"}
                     </Button>
                     <button type="button" onClick={() => setShowForgot(true)}
-                      className="font-body w-full text-center text-sm text-primary-foreground/50 hover:text-primary-foreground">
+                      className="font-body w-full text-center text-sm text-muted-foreground hover:text-foreground">
                       Forgot password?
                     </button>
                   </form>
@@ -160,27 +160,27 @@ const Login = () => {
               </Card>
             </TabsContent>
             <TabsContent value="signup">
-              <Card className="border-primary-foreground/10 bg-primary-foreground/5 backdrop-blur-sm">
+              <Card className="border-border bg-card backdrop-blur-sm">
                 <CardHeader>
-                  <CardTitle className="font-display text-xl text-primary-foreground">Request Access</CardTitle>
-                  <CardDescription className="text-primary-foreground/50">Create an account to request investor access</CardDescription>
+                  <CardTitle className="font-display text-xl text-foreground">Request Access</CardTitle>
+                  <CardDescription className="text-muted-foreground">Create an account to request investor access</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSignup} className="space-y-4">
                     <div>
-                      <Label className="text-primary-foreground/70">Full Name</Label>
+                      <Label className="text-foreground/70">Full Name</Label>
                       <Input value={signupName} onChange={(e) => setSignupName(e.target.value)}
-                        required maxLength={100} className="mt-1 border-primary-foreground/10 bg-primary-foreground/5 text-primary-foreground" />
+                        required maxLength={100} className="mt-1 border-border bg-secondary text-foreground" />
                     </div>
                     <div>
-                      <Label className="text-primary-foreground/70">Email</Label>
+                      <Label className="text-foreground/70">Email</Label>
                       <Input type="email" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)}
-                        required maxLength={255} className="mt-1 border-primary-foreground/10 bg-primary-foreground/5 text-primary-foreground" />
+                        required maxLength={255} className="mt-1 border-border bg-secondary text-foreground" />
                     </div>
                     <div>
-                      <Label className="text-primary-foreground/70">Password</Label>
+                      <Label className="text-foreground/70">Password</Label>
                       <Input type="password" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)}
-                        required minLength={8} className="mt-1 border-primary-foreground/10 bg-primary-foreground/5 text-primary-foreground" />
+                        required minLength={8} className="mt-1 border-border bg-secondary text-foreground" />
                     </div>
                     <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
                       {loading ? "Creating..." : "Request Access"}

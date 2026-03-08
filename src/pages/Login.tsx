@@ -60,9 +60,8 @@ const Login = () => {
   };
 
   // On mount, check if returning from magic link
-  useState(() => {
-    checkSessionAndRedirect();
-  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  React.useEffect(() => { checkSessionAndRedirect(); }, []);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6">

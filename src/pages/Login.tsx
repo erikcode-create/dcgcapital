@@ -39,7 +39,7 @@ const Login = () => {
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id ?? "")
         .single();
       
-      if (roleData?.role === "admin") {
+      if (roleData && roleData.role === "admin") {
         navigate("/admin");
       } else {
         navigate("/portal");

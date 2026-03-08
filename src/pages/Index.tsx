@@ -23,6 +23,12 @@ const fadeUp = {
 
 const Index = () => {
   const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
+
+  // In preview mode, redirect straight to admin portal
+  if (isPreviewMode()) {
+    return <Navigate to="/admin" replace />;
+  }
+
   const { toast } = useToast();
 
   const handleContactSubmit = (e: React.FormEvent) => {

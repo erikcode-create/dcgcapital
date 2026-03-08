@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.fetch-email-attachments]
 verify_jwt = false
+
+[functions.analyze-document]
+verify_jwt = false

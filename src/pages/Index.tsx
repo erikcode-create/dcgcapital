@@ -151,7 +151,7 @@ const Index = () => {
                 <p className="font-body mt-2 text-sm text-primary-foreground/50">Enterprise Value</p>
               </div>
               <div>
-                <p className="font-display text-3xl font-semibold text-maroon">$10M – $75M</p>
+                <p className="font-display text-3xl font-semibold text-royal">$10M – $75M</p>
                 <p className="font-body mt-2 text-sm text-primary-foreground/50">Equity Investment</p>
               </div>
             </div>

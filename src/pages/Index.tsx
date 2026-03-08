@@ -164,7 +164,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
             <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-accent">Our Team</p>
-            <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">Experienced <span className="text-gradient-gold font-medium">Leadership</span></h2>
+            <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">Experienced <span className="text-gradient-royal font-medium">Leadership</span></h2>
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-3">
             {[

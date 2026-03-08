@@ -68,7 +68,7 @@ const Index = () => {
             className="font-display mx-auto max-w-4xl text-5xl font-light leading-tight text-primary-foreground md:text-7xl lg:text-8xl"
           >
             Building Enduring{" "}
-            <span className="text-gradient-gold font-medium">Value</span>
+            <span className="text-gradient-royal font-medium">Value</span>
           </motion.h1>
           <motion.p
             initial="hidden" animate="visible" variants={fadeUp} custom={2}

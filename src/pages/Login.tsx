@@ -182,7 +182,7 @@ const Login = () => {
                       <Input type="password" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)}
                         required minLength={8} className="mt-1 border-primary-foreground/10 bg-primary-foreground/5 text-primary-foreground" />
                     </div>
-                    <Button type="submit" disabled={loading} className="w-full bg-gradient-gold text-accent-foreground">
+                    <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
                       {loading ? "Creating..." : "Request Access"}
                     </Button>
                   </form>

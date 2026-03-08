@@ -949,7 +949,7 @@ const AdminPortal = () => {
                     <div><Label className="text-xs">Description</Label><Textarea value={editingDeal.description || ""} onChange={(e) => setEditingDeal({ ...editingDeal, description: e.target.value })} className="mt-1" rows={3} /></div>
                     <div><Label className="text-xs">Contact</Label><Input value={editingDeal.contact_name || ""} onChange={(e) => setEditingDeal({ ...editingDeal, contact_name: e.target.value })} className="mt-1" placeholder="Name" /></div>
                     <div><Label className="text-xs">Contact Email</Label><Input value={editingDeal.contact_email || ""} onChange={(e) => setEditingDeal({ ...editingDeal, contact_email: e.target.value })} className="mt-1" /></div>
-                    <Button onClick={handleUpdateDeal} className="w-full bg-gradient-gold text-accent-foreground">Save Changes</Button>
+                    <Button onClick={handleUpdateDeal} className="w-full bg-gradient-royal text-accent-foreground">Save Changes</Button>
                   </div>
                 ) : (
                   <div className="space-y-3">

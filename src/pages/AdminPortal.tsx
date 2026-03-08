@@ -40,11 +40,8 @@ const CATEGORIES = [
 ];
 
 const DEAL_TYPES = [
-  { key: "buyout", label: "Buyout" },
-  { key: "growth_equity", label: "Growth Equity" },
-  { key: "recapitalization", label: "Recapitalization" },
-  { key: "add_on", label: "Add-On Acquisition" },
-  { key: "platform", label: "Platform Investment" },
+  { key: "equity", label: "Equity" },
+  { key: "debt", label: "Debt" },
   { key: "revenue_seeking", label: "Revenue Seeking" },
 ];
 

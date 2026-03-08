@@ -183,6 +183,11 @@ const InvestorPortal = () => {
                       <p className="font-display text-lg font-semibold text-accent">{deal.target_return}</p>
                     </div>
                   )}
+                  {deal.pitch_deck_path && (
+                    <Button onClick={() => handleDownloadDeck(deal.pitch_deck_path, deal.name)} variant="outline" size="sm" className="w-full">
+                      <Download className="mr-2 h-4 w-4" /> Download Pitch Deck
+                    </Button>
+                  )}
                   <Button onClick={() => handleExpressInterest(deal.id)} variant="outline" size="sm" className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground">
                     <Heart className="mr-2 h-4 w-4" /> Express Interest
                   </Button>

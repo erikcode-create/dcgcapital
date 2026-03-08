@@ -200,7 +200,7 @@ const Index = () => {
             ].map((stat, i) => (
               <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i + 1}
                 className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/5 p-8 text-center">
-                <p className="font-display text-4xl font-semibold text-gold md:text-5xl">{stat.value}</p>
+                <p className="font-display text-4xl font-semibold text-maroon md:text-5xl">{stat.value}</p>
                 <p className="font-body mt-3 text-sm text-primary-foreground/50">{stat.label}</p>
               </motion.div>
             ))}

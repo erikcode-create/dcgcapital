@@ -185,11 +185,11 @@ const Index = () => {
       </section>
 
       {/* Track Record */}
-      <section id="track-record" className="bg-gradient-navy py-32">
+      <section id="track-record" className="bg-gradient-dark py-32">
         <div className="container mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
-            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-maroon-light">Track Record</p>
-            <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">Proven <span className="text-gradient-gold font-medium">Results</span></h2>
+            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-royal-light">Track Record</p>
+            <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">Proven <span className="text-gradient-royal font-medium">Results</span></h2>
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-4">
             {[

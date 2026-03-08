@@ -687,7 +687,7 @@ const AdminPortal = () => {
                       <div><Label>Temporary Password *</Label><Input type="text" value={newInvestor.password} onChange={(e) => setNewInvestor({ ...newInvestor, password: e.target.value })} required minLength={8} className="mt-1" placeholder="Min 8 characters" /></div>
                       <div><Label>Company</Label><Input value={newInvestor.company} onChange={(e) => setNewInvestor({ ...newInvestor, company: e.target.value })} maxLength={100} className="mt-1" /></div>
                       <div><Label>Phone</Label><Input value={newInvestor.phone} onChange={(e) => setNewInvestor({ ...newInvestor, phone: e.target.value })} maxLength={20} className="mt-1" /></div>
-                      <Button type="submit" disabled={creatingInvestor} className="w-full bg-gradient-gold text-accent-foreground">
+                      <Button type="submit" disabled={creatingInvestor} className="w-full bg-gradient-royal text-accent-foreground">
                         {creatingInvestor ? "Creating..." : "Create Investor Account"}
                       </Button>
                       <p className="font-body text-xs text-muted-foreground text-center">The investor will be able to log in immediately with these credentials.</p>

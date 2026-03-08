@@ -649,7 +649,7 @@ const AdminPortal = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="nda"><NdaManager /></TabsContent>
+          <TabsContent value="nda"><NdaManager investors={investors} /></TabsContent>
           <TabsContent value="email"><EmailInbox onDealCreated={fetchAll} /></TabsContent>
         </Tabs>
       </main>

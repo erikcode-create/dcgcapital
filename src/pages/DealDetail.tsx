@@ -533,27 +533,117 @@ const DealDetail = () => {
               </Card>
 
               <Card className="border-border">
-                <CardHeader><CardTitle className="font-display text-base">Quick Stats</CardTitle></CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-body text-sm text-muted-foreground">Documents</span>
-                    <span className="font-body text-sm font-medium">{dealDocuments.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-body text-sm text-muted-foreground">Linked Emails</span>
-                    <span className="font-body text-sm font-medium">{dealEmails.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-body text-sm text-muted-foreground">Assigned Investors</span>
-                    <span className="font-body text-sm font-medium">{assignments.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-body text-sm text-muted-foreground">Messages</span>
-                    <span className="font-body text-sm font-medium">{messages.length}</span>
+                <CardHeader>
+                  <CardTitle className="font-display text-base flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-accent" />
+                    AI Document Upload
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="font-body text-xs text-muted-foreground mb-3">
+                    Upload a document and AI will analyze it, then suggest fields to populate on this deal.
+                  </p>
+                  {analyzingOverview ? (
+                    <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-accent/30 bg-accent/5 py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-accent" />
+                      <p className="font-body mt-2 text-sm text-muted-foreground">Analyzing with AI...</p>
+                      <p className="font-body mt-1 text-[11px] text-muted-foreground">This may take 15-30 seconds</p>
+                    </div>
+                  ) : (
+                    <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-8 transition-colors hover:border-accent/50 hover:bg-accent/5">
+                      <Upload className="h-6 w-6 text-muted-foreground" />
+                      <p className="font-body mt-2 text-sm font-medium text-foreground">Drop or click to upload</p>
+                      <p className="font-body mt-1 text-[11px] text-muted-foreground">PDF, PPTX, DOCX — AI will suggest deal fields</p>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept=".pdf,.pptx,.ppt,.docx,.xlsx,.csv"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleOverviewUpload(file);
+                        }}
+                      />
+                    </label>
+                  )}
+                  <div className="mt-3 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-body text-xs text-muted-foreground">Documents</span>
+                      <span className="font-body text-xs font-medium">{dealDocuments.length}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-body text-xs text-muted-foreground">Emails</span>
+                      <span className="font-body text-xs font-medium">{dealEmails.length}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-body text-xs text-muted-foreground">Investors</span>
+                      <span className="font-body text-xs font-medium">{assignments.length}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
+
+            {/* AI Suggestions Panel */}
+            {aiSuggestions && (
+              <Card className="mt-6 border-accent/30 bg-accent/5">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="font-display text-base flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-accent" />
+                      AI Suggested Updates
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setAiSuggestions(null)}>
+                        <XIcon className="mr-1 h-3 w-3" />Dismiss
+                      </Button>
+                      <Button size="sm" className="bg-gradient-royal text-accent-foreground" onClick={applyAllSuggestions}>
+                        <Check className="mr-1 h-3 w-3" />Apply All
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="font-body text-xs text-muted-foreground">AI found the following data in your uploaded document. Click ✓ to apply individual suggestions.</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {Object.entries(aiSuggestions).map(([field, value]) => {
+                      const displayValue = typeof value === "number" ? formatCurrency(value) : String(value);
+                      const fieldLabel = field.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+                      const currentValue = deal[field];
+                      return (
+                        <div key={field} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-body text-xs font-medium text-muted-foreground">{fieldLabel}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {currentValue && (
+                                <>
+                                  <span className="font-body text-xs text-muted-foreground line-through truncate max-w-[150px]">
+                                    {typeof currentValue === "number" ? formatCurrency(currentValue) : String(currentValue)}
+                                  </span>
+                                  <ChevronRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                                </>
+                              )}
+                              <span className="font-body text-sm font-medium text-accent truncate">{displayValue}</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-1 ml-2 shrink-0">
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                              const remaining = { ...aiSuggestions };
+                              delete remaining[field];
+                              setAiSuggestions(Object.keys(remaining).length > 0 ? remaining : null);
+                            }}>
+                              <XIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-accent hover:text-accent" onClick={() => applyAiSuggestion(field, value)}>
+                              <Check className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Data Room */}

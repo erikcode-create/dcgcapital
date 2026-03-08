@@ -438,62 +438,118 @@ const DealDetail = () => {
           <TabsContent value="overview">
             <div className="grid gap-6 md:grid-cols-2">
               <Card className="border-border">
-                <CardHeader><CardTitle className="font-display text-base">Deal Details</CardTitle></CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="font-display text-base">Deal Details</CardTitle>
+                  {!editing && <Button size="sm" variant="ghost" onClick={() => setEditing(true)}><Edit className="mr-1 h-3 w-3" />Edit</Button>}
+                  {editing && (
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setEditData({ ...deal }); }}><X className="mr-1 h-3 w-3" />Cancel</Button>
+                      <Button size="sm" onClick={() => { handleSave(); setEditing(false); }}><Save className="mr-1 h-3 w-3" />Save</Button>
+                    </div>
+                  )}
+                </CardHeader>
                 <CardContent className="space-y-4">
-                  <div><Label className="font-body text-xs text-muted-foreground">Company Name</Label><Input value={editData.name || ""} onChange={e => setEditData({...editData, name: e.target.value})} onBlur={handleSave} className="mt-1" /></div>
-                  <div><Label className="font-body text-xs text-muted-foreground">Description</Label><Textarea value={editData.description || ""} onChange={e => setEditData({...editData, description: e.target.value})} onBlur={handleSave} className="mt-1" rows={3} /></div>
-                  <div className="grid gap-3 grid-cols-2">
-                    <div><Label className="font-body text-xs text-muted-foreground">Sector</Label><Input value={editData.sector || ""} onChange={e => setEditData({...editData, sector: e.target.value})} onBlur={handleSave} className="mt-1" placeholder="e.g. Technology" /></div>
-                    <div><Label className="font-body text-xs text-muted-foreground">Geography</Label><Input value={editData.geography || ""} onChange={e => setEditData({...editData, geography: e.target.value})} onBlur={handleSave} className="mt-1" placeholder="e.g. Midwest US" /></div>
-                  </div>
-                  <div className="grid gap-3 grid-cols-2">
-                    <div>
-                      <Label className="font-body text-xs text-muted-foreground">Deal Type</Label>
-                      <Select value={editData.deal_type || "buyout"} onValueChange={v => { setEditData({...editData, deal_type: v}); setTimeout(() => handleSave(), 0); }}>
-                        <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                        <SelectContent>{DEAL_TYPES.map(t => <SelectItem key={t.key} value={t.key}>{t.label}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="font-body text-xs text-muted-foreground">Status</Label>
-                      <Select value={editData.status || "active"} onValueChange={v => { setEditData({...editData, status: v}); setTimeout(() => handleSave(), 0); }}>
-                        <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="on_hold">On Hold</SelectItem>
-                          <SelectItem value="closed">Closed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div><Label className="font-body text-xs text-muted-foreground">Target Return</Label><Input value={editData.target_return || ""} onChange={e => setEditData({...editData, target_return: e.target.value})} onBlur={handleSave} className="mt-1" placeholder="e.g. 25% IRR / 3.0x MOIC" /></div>
-                  <div><Label className="font-body text-xs text-muted-foreground">Internal Notes</Label><Textarea value={editData.notes || ""} onChange={e => setEditData({...editData, notes: e.target.value})} onBlur={handleSave} className="mt-1" rows={3} placeholder="Investment thesis, sourcing details..." /></div>
+                  {editing ? (
+                    <>
+                      <div><Label className="font-body text-xs text-muted-foreground">Company Name</Label><Input value={editData.name || ""} onChange={e => setEditData({...editData, name: e.target.value})} className="mt-1" /></div>
+                      <div><Label className="font-body text-xs text-muted-foreground">Description</Label><Textarea value={editData.description || ""} onChange={e => setEditData({...editData, description: e.target.value})} className="mt-1" rows={3} /></div>
+                      <div className="grid gap-3 grid-cols-2">
+                        <div><Label className="font-body text-xs text-muted-foreground">Sector</Label><Input value={editData.sector || ""} onChange={e => setEditData({...editData, sector: e.target.value})} className="mt-1" /></div>
+                        <div><Label className="font-body text-xs text-muted-foreground">Geography</Label><Input value={editData.geography || ""} onChange={e => setEditData({...editData, geography: e.target.value})} className="mt-1" /></div>
+                      </div>
+                      <div className="grid gap-3 grid-cols-2">
+                        <div>
+                          <Label className="font-body text-xs text-muted-foreground">Deal Type</Label>
+                          <Select value={editData.deal_type || "buyout"} onValueChange={v => setEditData({...editData, deal_type: v})}>
+                            <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>{DEAL_TYPES.map(t => <SelectItem key={t.key} value={t.key}>{t.label}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="font-body text-xs text-muted-foreground">Status</Label>
+                          <Select value={editData.status || "active"} onValueChange={v => setEditData({...editData, status: v})}>
+                            <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="active">Active</SelectItem>
+                              <SelectItem value="on_hold">On Hold</SelectItem>
+                              <SelectItem value="closed">Closed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div><Label className="font-body text-xs text-muted-foreground">Target Return</Label><Input value={editData.target_return || ""} onChange={e => setEditData({...editData, target_return: e.target.value})} className="mt-1" /></div>
+                      <div><Label className="font-body text-xs text-muted-foreground">Internal Notes</Label><Textarea value={editData.notes || ""} onChange={e => setEditData({...editData, notes: e.target.value})} className="mt-1" rows={3} /></div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-3">
+                        <div><p className="font-body text-xs text-muted-foreground">Company Name</p><p className="font-body text-sm text-foreground">{deal.name || "—"}</p></div>
+                        <div><p className="font-body text-xs text-muted-foreground">Description</p><p className="font-body text-sm text-foreground whitespace-pre-wrap">{deal.description || "—"}</p></div>
+                        <div className="grid gap-3 grid-cols-2">
+                          <div><p className="font-body text-xs text-muted-foreground">Sector</p><p className="font-body text-sm text-foreground">{deal.sector || "—"}</p></div>
+                          <div><p className="font-body text-xs text-muted-foreground">Geography</p><p className="font-body text-sm text-foreground">{deal.geography || "—"}</p></div>
+                        </div>
+                        <div className="grid gap-3 grid-cols-2">
+                          <div><p className="font-body text-xs text-muted-foreground">Deal Type</p><p className="font-body text-sm text-foreground">{DEAL_TYPES.find(t => t.key === deal.deal_type)?.label || deal.deal_type || "—"}</p></div>
+                          <div><p className="font-body text-xs text-muted-foreground">Status</p><p className="font-body text-sm text-foreground capitalize">{deal.status || "—"}</p></div>
+                        </div>
+                        <div><p className="font-body text-xs text-muted-foreground">Target Return</p><p className="font-body text-sm text-foreground">{deal.target_return || "—"}</p></div>
+                        {deal.notes && <div><p className="font-body text-xs text-muted-foreground">Internal Notes</p><p className="font-body text-sm text-foreground whitespace-pre-wrap">{deal.notes}</p></div>}
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
               <Card className="border-border">
-                <CardHeader><CardTitle className="font-display text-base">Financials</CardTitle></CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="font-display text-base">Financials</CardTitle>
+                  {!editing && <Button size="sm" variant="ghost" onClick={() => setEditing(true)}><Edit className="mr-1 h-3 w-3" />Edit</Button>}
+                </CardHeader>
                 <CardContent>
-                  <div className="grid gap-3 grid-cols-2">
-                    <div><Label className="font-body text-xs text-muted-foreground">Enterprise Value ($)</Label><Input type="number" value={editData.enterprise_value || ""} onChange={e => setEditData({...editData, enterprise_value: e.target.value ? parseFloat(e.target.value) : null})} onBlur={handleSave} className="mt-1" /></div>
-                    <div><Label className="font-body text-xs text-muted-foreground">EBITDA ($)</Label><Input type="number" value={editData.ebitda || ""} onChange={e => setEditData({...editData, ebitda: e.target.value ? parseFloat(e.target.value) : null})} onBlur={handleSave} className="mt-1" /></div>
-                    <div><Label className="font-body text-xs text-muted-foreground">Revenue ($)</Label><Input type="number" value={editData.revenue || ""} onChange={e => setEditData({...editData, revenue: e.target.value ? parseFloat(e.target.value) : null})} onBlur={handleSave} className="mt-1" /></div>
-                    <div><Label className="font-body text-xs text-muted-foreground">Investment ($)</Label><Input type="number" value={editData.investment_amount || ""} onChange={e => setEditData({...editData, investment_amount: e.target.value ? parseFloat(e.target.value) : null})} onBlur={handleSave} className="mt-1" /></div>
-                  </div>
-                  {editData.ebitda && editData.enterprise_value && (
+                  {editing ? (
+                    <div className="grid gap-3 grid-cols-2">
+                      <div><Label className="font-body text-xs text-muted-foreground">Enterprise Value ($)</Label><Input type="number" value={editData.enterprise_value || ""} onChange={e => setEditData({...editData, enterprise_value: e.target.value ? parseFloat(e.target.value) : null})} className="mt-1" /></div>
+                      <div><Label className="font-body text-xs text-muted-foreground">EBITDA ($)</Label><Input type="number" value={editData.ebitda || ""} onChange={e => setEditData({...editData, ebitda: e.target.value ? parseFloat(e.target.value) : null})} className="mt-1" /></div>
+                      <div><Label className="font-body text-xs text-muted-foreground">Revenue ($)</Label><Input type="number" value={editData.revenue || ""} onChange={e => setEditData({...editData, revenue: e.target.value ? parseFloat(e.target.value) : null})} className="mt-1" /></div>
+                      <div><Label className="font-body text-xs text-muted-foreground">Investment ($)</Label><Input type="number" value={editData.investment_amount || ""} onChange={e => setEditData({...editData, investment_amount: e.target.value ? parseFloat(e.target.value) : null})} className="mt-1" /></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="grid gap-3 grid-cols-2">
+                        <div><p className="font-body text-xs text-muted-foreground">Enterprise Value</p><p className="font-display text-sm font-semibold text-foreground">{formatCurrency(deal.enterprise_value)}</p></div>
+                        <div><p className="font-body text-xs text-muted-foreground">EBITDA</p><p className="font-display text-sm font-semibold text-foreground">{formatCurrency(deal.ebitda)}</p></div>
+                        <div><p className="font-body text-xs text-muted-foreground">Revenue</p><p className="font-display text-sm font-semibold text-foreground">{formatCurrency(deal.revenue)}</p></div>
+                        <div><p className="font-body text-xs text-muted-foreground">Investment</p><p className="font-display text-sm font-semibold text-foreground">{formatCurrency(deal.investment_amount)}</p></div>
+                      </div>
+                    </div>
+                  )}
+                  {deal.ebitda && deal.enterprise_value && (
                     <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
                       <span className="font-body text-sm text-muted-foreground">EV / EBITDA</span>
-                      <span className="font-body text-sm font-semibold text-accent">{(editData.enterprise_value / editData.ebitda).toFixed(1)}x</span>
+                      <span className="font-body text-sm font-semibold text-accent">{(deal.enterprise_value / deal.ebitda).toFixed(1)}x</span>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
               <Card className="border-border">
-                <CardHeader><CardTitle className="font-display text-base">Contact</CardTitle></CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="font-display text-base">Contact</CardTitle>
+                  {!editing && <Button size="sm" variant="ghost" onClick={() => setEditing(true)}><Edit className="mr-1 h-3 w-3" />Edit</Button>}
+                </CardHeader>
                 <CardContent className="space-y-3">
-                  <div><Label className="font-body text-xs text-muted-foreground">Contact Name</Label><Input value={editData.contact_name || ""} onChange={e => setEditData({...editData, contact_name: e.target.value})} onBlur={handleSave} className="mt-1" placeholder="John Smith (Banker)" /></div>
-                  <div><Label className="font-body text-xs text-muted-foreground">Contact Email</Label><Input type="email" value={editData.contact_email || ""} onChange={e => setEditData({...editData, contact_email: e.target.value})} onBlur={handleSave} className="mt-1" /></div>
+                  {editing ? (
+                    <>
+                      <div><Label className="font-body text-xs text-muted-foreground">Contact Name</Label><Input value={editData.contact_name || ""} onChange={e => setEditData({...editData, contact_name: e.target.value})} className="mt-1" placeholder="John Smith (Banker)" /></div>
+                      <div><Label className="font-body text-xs text-muted-foreground">Contact Email</Label><Input type="email" value={editData.contact_email || ""} onChange={e => setEditData({...editData, contact_email: e.target.value})} className="mt-1" /></div>
+                    </>
+                  ) : (
+                    <>
+                      <div><p className="font-body text-xs text-muted-foreground">Contact Name</p><p className="font-body text-sm text-foreground">{deal.contact_name || "—"}</p></div>
+                      <div><p className="font-body text-xs text-muted-foreground">Contact Email</p><p className="font-body text-sm text-foreground">{deal.contact_email || "—"}</p></div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 

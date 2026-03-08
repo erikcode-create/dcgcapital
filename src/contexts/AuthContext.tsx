@@ -2,6 +2,11 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+const isPreviewMode = () => {
+  const hostname = window.location.hostname;
+  return hostname.includes("preview") && hostname.endsWith(".lovable.app");
+};
+
 type UserRole = "admin" | "investor";
 
 interface AuthContextType {

@@ -6,8 +6,17 @@ interface ProtectedRouteProps {
   requiredRole?: "admin" | "investor";
 }
 
+const isPreviewMode = () => {
+  const hostname = window.location.hostname;
+  return hostname.includes("preview") && hostname.endsWith(".lovable.app");
+};
+
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { user, loading, userRole } = useAuth();
+
+  if (isPreviewMode()) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (

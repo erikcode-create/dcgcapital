@@ -34,6 +34,18 @@ async function getAccessToken(): Promise<string> {
   return data.access_token;
 }
 
+function guessDocumentType(name: string, mimeType: string): string {
+  const lower = name.toLowerCase();
+  if (lower.includes("pitch") || lower.includes("deck")) return "pitch_deck";
+  if (lower.includes("financ") || lower.includes("model")) return "financials";
+  if (lower.includes("teaser") || lower.includes("cim") || lower.includes("memo")) return "investment_memo";
+  if (lower.includes("nda") || lower.includes("agreement")) return "legal";
+  if (mimeType.includes("spreadsheet") || mimeType.includes("excel") || lower.endsWith(".xlsx") || lower.endsWith(".csv")) return "financials";
+  if (mimeType.includes("presentation") || lower.endsWith(".pptx")) return "pitch_deck";
+  if (mimeType.includes("pdf")) return "pitch_deck";
+  return "other";
+}
+
 const MAILBOX = "data@fitzcap.co";
 
 Deno.serve(async (req) => {

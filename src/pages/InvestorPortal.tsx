@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, TrendingUp, MessageSquare, Heart, User, ArrowLeft, Eye } from "lucide-react";
+import { LogOut, TrendingUp, MessageSquare, Heart, User, ArrowLeft, Eye, Download } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 const InvestorPortal = () => {
@@ -75,6 +75,27 @@ const InvestorPortal = () => {
     } else {
       toast({ title: "Message sent" });
       setMessages({ ...messages, [dealId]: "" });
+    }
+  };
+
+  const handleDownloadDeck = async (filePath: string, dealName: string) => {
+    try {
+      const { data, error } = await supabase.storage.from("pitch-decks").download(filePath);
+      if (error || !data) {
+        toast({ title: "Error", description: error?.message || "Failed to download", variant: "destructive" });
+        return;
+      }
+      const ext = filePath.split(".").pop() || "pdf";
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${dealName.replace(/[^a-zA-Z0-9]/g, "_")}_pitch_deck.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
@@ -161,6 +182,11 @@ const InvestorPortal = () => {
                       <p className="font-body text-xs text-muted-foreground">Target Return</p>
                       <p className="font-display text-lg font-semibold text-accent">{deal.target_return}</p>
                     </div>
+                  )}
+                  {deal.pitch_deck_path && (
+                    <Button onClick={() => handleDownloadDeck(deal.pitch_deck_path, deal.name)} variant="outline" size="sm" className="w-full">
+                      <Download className="mr-2 h-4 w-4" /> Download Pitch Deck
+                    </Button>
                   )}
                   <Button onClick={() => handleExpressInterest(deal.id)} variant="outline" size="sm" className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground">
                     <Heart className="mr-2 h-4 w-4" /> Express Interest

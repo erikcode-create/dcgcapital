@@ -246,7 +246,7 @@ const DealDetail = () => {
       if (analysisError) {
         toast({ title: "Analysis failed", description: analysisError.message, variant: "destructive" });
       } else if (analysisData?.suggested_fields) {
-        // Filter out null suggestions
+        // Filter out null/empty suggestions and fields that already have values
         const filtered: Record<string, any> = {};
         for (const [key, value] of Object.entries(analysisData.suggested_fields)) {
           if (value !== null && value !== undefined && value !== "") {
@@ -254,8 +254,18 @@ const DealDetail = () => {
           }
         }
         if (Object.keys(filtered).length > 0) {
-          setAiSuggestions(filtered);
-          toast({ title: "AI Suggestions Ready", description: "Review suggested updates below" });
+          // Auto-apply all suggestions to the deal
+          const { error: updateError } = await supabase.from("deals").update(filtered).eq("id", deal.id);
+          if (!updateError) {
+            const updatedDeal = { ...deal, ...filtered };
+            setDeal(updatedDeal);
+            setEditData(updatedDeal);
+            toast({ title: "AI Auto-Populated Fields", description: `Updated ${Object.keys(filtered).length} fields from document analysis` });
+          } else {
+            // Fallback to manual suggestions if auto-apply fails
+            setAiSuggestions(filtered);
+            toast({ title: "AI Suggestions Ready", description: "Review suggested updates below" });
+          }
         } else {
           toast({ title: "AI Analysis Complete", description: "No new field suggestions from this document" });
         }

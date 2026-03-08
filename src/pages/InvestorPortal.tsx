@@ -89,6 +89,18 @@ const InvestorPortal = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Admin Preview Banner */}
+      {isAdminViewing && (
+        <div className="bg-gradient-gold px-6 py-2 text-center">
+          <div className="container mx-auto flex items-center justify-center gap-3">
+            <Eye className="h-4 w-4 text-accent-foreground" />
+            <span className="font-body text-sm font-medium text-accent-foreground">Admin Preview — You're viewing the investor portal as an admin</span>
+            <Button size="sm" variant="outline" className="ml-4 h-7 border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10" onClick={() => navigate("/admin")}>
+              <ArrowLeft className="mr-1 h-3 w-3" />Back to Admin
+            </Button>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">

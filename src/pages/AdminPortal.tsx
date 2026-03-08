@@ -482,7 +482,30 @@ const AdminPortal = () => {
           <TabsContent value="investors">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="font-display text-2xl text-foreground">Investor Directory</h2>
-              <p className="font-body text-sm text-muted-foreground">{investors.length} investors</p>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => navigate("/portal")}>
+                  <Eye className="mr-2 h-4 w-4" />View as Investor
+                </Button>
+                <Dialog open={createInvestorOpen} onOpenChange={setCreateInvestorOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-gradient-gold text-accent-foreground"><Plus className="mr-2 h-4 w-4" />Add Investor</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader><DialogTitle className="font-display text-xl">Create Investor Account</DialogTitle></DialogHeader>
+                    <form onSubmit={handleCreateInvestor} className="space-y-4">
+                      <div><Label>Full Name *</Label><Input value={newInvestor.full_name} onChange={(e) => setNewInvestor({ ...newInvestor, full_name: e.target.value })} required maxLength={100} className="mt-1" /></div>
+                      <div><Label>Email *</Label><Input type="email" value={newInvestor.email} onChange={(e) => setNewInvestor({ ...newInvestor, email: e.target.value })} required maxLength={255} className="mt-1" /></div>
+                      <div><Label>Temporary Password *</Label><Input type="text" value={newInvestor.password} onChange={(e) => setNewInvestor({ ...newInvestor, password: e.target.value })} required minLength={8} className="mt-1" placeholder="Min 8 characters" /></div>
+                      <div><Label>Company</Label><Input value={newInvestor.company} onChange={(e) => setNewInvestor({ ...newInvestor, company: e.target.value })} maxLength={100} className="mt-1" /></div>
+                      <div><Label>Phone</Label><Input value={newInvestor.phone} onChange={(e) => setNewInvestor({ ...newInvestor, phone: e.target.value })} maxLength={20} className="mt-1" /></div>
+                      <Button type="submit" disabled={creatingInvestor} className="w-full bg-gradient-gold text-accent-foreground">
+                        {creatingInvestor ? "Creating..." : "Create Investor Account"}
+                      </Button>
+                      <p className="font-body text-xs text-muted-foreground text-center">The investor will be able to log in immediately with these credentials.</p>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {investors.map((inv) => (

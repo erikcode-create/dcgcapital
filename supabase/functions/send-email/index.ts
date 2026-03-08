@@ -45,23 +45,42 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Missing authorization header");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify caller is admin
-    const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
-    const { data: { user }, error: authError } = await anonClient.auth.getUser(authHeader.replace("Bearer ", ""));
-    if (authError || !user) throw new Error("Unauthorized");
+    // Verify caller using getClaims
+    const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
-    if (!isAdmin) throw new Error("Forbidden: Admin only");
+    const userId = claimsData.claims.sub as string;
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden: Admin only" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const { to, cc, subject, body, replyToId } = await req.json();
+    const { to, cc, subject, body: emailBody, replyToId } = await req.json();
 
-    if (!to || !subject || !body) {
+    if (!to || !subject || !emailBody) {
       throw new Error("Missing required fields: to, subject, body");
     }
 
@@ -81,23 +100,21 @@ Deno.serve(async (req) => {
       subject,
       body: {
         contentType: "HTML",
-        content: body,
+        content: emailBody,
       },
       toRecipients,
       ccRecipients,
     };
 
-    let url: string;
     if (replyToId) {
-      // Reply to an existing email
-      url = `https://graph.microsoft.com/v1.0/users/${MAILBOX}/messages/${replyToId}/reply`;
+      const url = `https://graph.microsoft.com/v1.0/users/${MAILBOX}/messages/${replyToId}/reply`;
       const graphRes = await fetch(url, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message, comment: body }),
+        body: JSON.stringify({ message, comment: emailBody }),
       });
 
       if (!graphRes.ok) {
@@ -106,8 +123,7 @@ Deno.serve(async (req) => {
       }
       await graphRes.text();
     } else {
-      // Send new email
-      url = `https://graph.microsoft.com/v1.0/users/${MAILBOX}/sendMail`;
+      const url = `https://graph.microsoft.com/v1.0/users/${MAILBOX}/sendMail`;
       const graphRes = await fetch(url, {
         method: "POST",
         headers: {
@@ -132,9 +148,9 @@ Deno.serve(async (req) => {
       from_name: "Fitzpatrick Capital Partners",
       to_addresses: toRecipients.map((r: any) => ({ address: r.emailAddress.address })),
       cc_addresses: ccRecipients.map((r: any) => ({ address: r.emailAddress.address })),
-      body_html: body,
-      body_text: body.replace(/<[^>]*>/g, ""),
-      body_preview: body.replace(/<[^>]*>/g, "").slice(0, 200),
+      body_html: emailBody,
+      body_text: emailBody.replace(/<[^>]*>/g, ""),
+      body_preview: emailBody.replace(/<[^>]*>/g, "").slice(0, 200),
       sent_at: new Date().toISOString(),
       received_at: new Date().toISOString(),
       is_read: true,

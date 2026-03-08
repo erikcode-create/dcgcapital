@@ -2,13 +2,12 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import {
   Download, Upload, FileText, Image, File, FileSpreadsheet,
-  Loader2, Plus, Trash2, FolderOpen
+  Loader2, Trash2, FolderOpen, Brain, ChevronDown, ChevronUp
 } from "lucide-react";
 
 const DOCUMENT_TYPES = [
@@ -35,11 +34,6 @@ const getFileIcon = (contentType: string, name: string) => {
   return File;
 };
 
-const getDocTypeBadge = (docType: string) => {
-  const dt = DOCUMENT_TYPES.find(d => d.key === docType);
-  return dt?.label || docType || "Other";
-};
-
 interface DataRoomSectionProps {
   dealId: string;
   dealName: string;
@@ -50,7 +44,9 @@ interface DataRoomSectionProps {
 }
 
 const DataRoomSection = ({ dealId, dealName, documents, onUpload, onRefresh, uploading }: DataRoomSectionProps) => {
-  const [uploadDocType, setUploadDocType] = useState("other");
+  const [uploadDocType, setUploadDocType] = useState("pitch_deck");
+  const [expandedSummary, setExpandedSummary] = useState<string | null>(null);
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleDownload = async (doc: any) => {
@@ -74,7 +70,7 @@ const DataRoomSection = ({ dealId, dealName, documents, onUpload, onRefresh, upl
   };
 
   const handleDelete = async (docId: string) => {
-    const { error } = await supabase.from("deal_documents").delete().eq("id", docId);
+    const { error } = await (supabase as any).from("deal_documents").delete().eq("id", docId);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
@@ -83,16 +79,30 @@ const DataRoomSection = ({ dealId, dealName, documents, onUpload, onRefresh, upl
     }
   };
 
+  const handleAnalyze = async (docId: string, fileName: string) => {
+    setAnalyzingId(docId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("analyze-document", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+        body: { document_id: docId },
+      });
+      if (error) throw error;
+      toast({ title: "Analysis complete", description: `Summary generated for ${fileName}` });
+      onRefresh(dealId);
+      setExpandedSummary(docId);
+    } catch (err: any) {
+      toast({ title: "Analysis failed", description: err.message, variant: "destructive" });
+    } finally {
+      setAnalyzingId(null);
+    }
+  };
+
   // Group documents by type
   const grouped = DOCUMENT_TYPES.map(dt => ({
     ...dt,
     docs: documents.filter(d => d.document_type === dt.key),
   })).filter(g => g.docs.length > 0);
-
-  const ungrouped = documents.filter(d => !DOCUMENT_TYPES.find(dt => dt.key === d.document_type));
-  if (ungrouped.length > 0) {
-    grouped.push({ key: "uncategorized", label: "Uncategorized", docs: ungrouped });
-  }
 
   return (
     <div>
@@ -138,7 +148,7 @@ const DataRoomSection = ({ dealId, dealName, documents, onUpload, onRefresh, upl
             </label>
           )}
         </div>
-        <p className="font-body text-[10px] text-muted-foreground">PDF, PPTX, DOCX, XLSX, CSV, images up to 20MB</p>
+        <p className="font-body text-[10px] text-muted-foreground">PDF, PPTX, DOCX, XLSX, CSV, images up to 20MB. AI will automatically analyze uploaded documents.</p>
       </div>
 
       {/* Document List */}
@@ -152,30 +162,80 @@ const DataRoomSection = ({ dealId, dealName, documents, onUpload, onRefresh, upl
               <div className="space-y-1.5">
                 {group.docs.map((doc: any) => {
                   const IconComponent = getFileIcon(doc.content_type, doc.file_name);
+                  const isAnalyzing = analyzingId === doc.id;
+                  const isExpanded = expandedSummary === doc.id;
+                  const hasSummary = !!doc.ai_summary;
+
                   return (
-                    <div
-                      key={doc.id}
-                      className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2 hover:bg-muted/50 transition-colors group"
-                    >
-                      <div className="flex h-7 w-7 items-center justify-center rounded bg-accent/10 flex-shrink-0">
-                        <IconComponent className="h-4 w-4 text-accent" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-body text-xs font-medium truncate text-card-foreground">{doc.file_name}</p>
-                        <div className="flex items-center gap-2">
-                          {doc.file_size > 0 && <span className="font-body text-[10px] text-muted-foreground">{formatFileSize(doc.file_size)}</span>}
-                          {doc.source === "email" && <Badge variant="outline" className="text-[9px] h-4 px-1">Email</Badge>}
-                          {doc.created_at && <span className="font-body text-[10px] text-muted-foreground">{format(new Date(doc.created_at), "MMM d")}</span>}
+                    <div key={doc.id} className="rounded-lg border border-border bg-muted/20 overflow-hidden">
+                      <div className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted/50 transition-colors group">
+                        <div className="flex h-7 w-7 items-center justify-center rounded bg-accent/10 flex-shrink-0">
+                          <IconComponent className="h-4 w-4 text-accent" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-body text-xs font-medium truncate text-card-foreground">{doc.file_name}</p>
+                          <div className="flex items-center gap-2">
+                            {doc.file_size > 0 && <span className="font-body text-[10px] text-muted-foreground">{formatFileSize(doc.file_size)}</span>}
+                            {doc.source === "email" && <Badge variant="outline" className="text-[9px] h-4 px-1">Email</Badge>}
+                            {hasSummary && <Badge variant="outline" className="text-[9px] h-4 px-1 border-accent/30 text-accent">AI Summary</Badge>}
+                            {doc.created_at && <span className="font-body text-[10px] text-muted-foreground">{format(new Date(doc.created_at), "MMM d")}</span>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {hasSummary && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-accent"
+                              onClick={() => setExpandedSummary(isExpanded ? null : doc.id)}
+                              title="View AI Summary"
+                            >
+                              {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                            </Button>
+                          )}
+                          {!hasSummary && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-1.5 text-[10px] text-accent"
+                              onClick={() => handleAnalyze(doc.id, doc.file_name)}
+                              disabled={isAnalyzing}
+                              title="Run AI Analysis"
+                            >
+                              {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => handleDownload(doc)}>
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDelete(doc.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => handleDownload(doc)}>
-                          <Download className="h-3 w-3" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive" onClick={() => handleDelete(doc.id)}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
+
+                      {/* AI Summary Expandable */}
+                      {isExpanded && hasSummary && (
+                        <div className="border-t border-border bg-accent/5 px-4 py-3">
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <Brain className="h-3.5 w-3.5 text-accent" />
+                            <span className="font-body text-[11px] font-medium text-accent">AI Analysis</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-5 px-1.5 text-[10px] text-muted-foreground ml-auto"
+                              onClick={() => handleAnalyze(doc.id, doc.file_name)}
+                              disabled={isAnalyzing}
+                            >
+                              {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                              Re-analyze
+                            </Button>
+                          </div>
+                          <div className="font-body text-xs text-card-foreground prose prose-xs max-w-none whitespace-pre-wrap leading-relaxed">
+                            {doc.ai_summary}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

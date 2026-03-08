@@ -817,6 +817,25 @@ const AdminPortal = () => {
                 </div>
               </div>
 
+              {/* Pitch Deck Download */}
+              {detailDeal.pitch_deck_path && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Pitch Deck</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleDownloadDeck(detailDeal.pitch_deck_path, detailDeal.name)}
+                    >
+                      <Download className="h-4 w-4" />
+                      Download Pitch Deck
+                    </Button>
+                  </div>
+                </>
+              )}
+
               <Separator />
 
               {/* Financials */}

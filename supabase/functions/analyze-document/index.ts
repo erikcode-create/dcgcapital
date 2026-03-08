@@ -130,7 +130,7 @@ Return a JSON object with exactly these two fields:
     "description": "suggested description or null if current is better",
     "sector": "suggested sector or null",
     "geography": "suggested geography or null",
-    "deal_type": "one of: buyout, growth_equity, recapitalization, add_on, platform, revenue_seeking — or null",
+    "deal_type": "one of: equity, debt, revenue_seeking — or null",
     "enterprise_value": numeric value in dollars or null,
     "ebitda": numeric value in dollars or null,
     "revenue": numeric value in dollars or null,

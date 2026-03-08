@@ -24,13 +24,23 @@ const InvestorPortal = () => {
 
   const fetchDeals = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("deal_assignments")
-      .select("deal_id, deals(*)")
-      .eq("investor_id", user.id);
     
-    if (data) {
-      setDeals(data.map((d: any) => d.deals).filter(Boolean));
+    if (isAdminViewing) {
+      // Admin sees ALL deals
+      const { data } = await supabase
+        .from("deals")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (data) setDeals(data);
+    } else {
+      // Investor sees only assigned deals
+      const { data } = await supabase
+        .from("deal_assignments")
+        .select("deal_id, deals(*)")
+        .eq("investor_id", user.id);
+      if (data) {
+        setDeals(data.map((d: any) => d.deals).filter(Boolean));
+      }
     }
     setLoading(false);
   };

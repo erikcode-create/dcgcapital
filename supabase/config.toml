@@ -1,1 +1,4 @@
 project_id = "gdulykjwkrezaidlylyj"
+
+[functions.convert-email-to-deal]
+verify_jwt = false

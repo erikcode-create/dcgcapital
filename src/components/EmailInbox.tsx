@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import {
   Mail, RefreshCw, Send, Reply, Inbox, ArrowUpRight,
   Loader2, Search, Clock, Paperclip, Star, ChevronLeft, Plus,
-  Eye
+  Eye, Tag, ArrowRightToLine, Briefcase
 } from "lucide-react";
 
 interface Email {
@@ -36,9 +37,22 @@ interface Email {
   conversation_id: string | null;
   is_draft: boolean | null;
   created_at: string;
+  category: string | null;
 }
 
-const EmailInbox = () => {
+const EMAIL_CATEGORIES = [
+  { key: "revenue_seeking", label: "Revenue Seeking", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+  { key: "deal_flow", label: "Deal Flow", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
+  { key: "investor_relations", label: "Investor Relations", color: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
+  { key: "general", label: "General", color: "bg-gray-500/10 text-gray-600 border-gray-500/20" },
+  { key: "spam", label: "Spam / Irrelevant", color: "bg-red-500/10 text-red-600 border-red-500/20" },
+];
+
+interface EmailInboxProps {
+  onDealCreated?: () => void;
+}
+
+const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -48,6 +62,7 @@ const EmailInbox = () => {
   const [composeOpen, setComposeOpen] = useState(false);
   const [replyOpen, setReplyOpen] = useState(false);
   const [sending, setSending] = useState(false);
+  const [converting, setConverting] = useState(false);
   const [compose, setCompose] = useState({ to: "", cc: "", subject: "", body: "" });
   const [replyBody, setReplyBody] = useState("");
   const { toast } = useToast();
@@ -148,6 +163,62 @@ const EmailInbox = () => {
     }
   };
 
+  const handleCategorize = async (emailId: string, category: string) => {
+    const { error } = await supabase
+      .from("emails")
+      .update({ category })
+      .eq("id", emailId);
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      // Update local state
+      setEmails(prev => prev.map(e => e.id === emailId ? { ...e, category } : e));
+      if (selectedEmail?.id === emailId) {
+        setSelectedEmail(prev => prev ? { ...prev, category } : null);
+      }
+      toast({ title: "Email categorized", description: `Marked as ${EMAIL_CATEGORIES.find(c => c.key === category)?.label}` });
+    }
+  };
+
+  const handleConvertToDeal = async (email: Email, category: string) => {
+    setConverting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase.functions.invoke("convert-email-to-deal", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: { email_id: email.id, category },
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      toast({
+        title: "Deal created from email!",
+        description: `"${data.deal?.name}" added to pipeline. ${data.attachments_uploaded || 0} attachment(s) saved.`,
+      });
+
+      // Update the email category locally
+      setEmails(prev => prev.map(e => e.id === email.id ? { ...e, category } : e));
+      if (selectedEmail?.id === email.id) {
+        setSelectedEmail(prev => prev ? { ...prev, category } : null);
+      }
+
+      onDealCreated?.();
+    } catch (err: any) {
+      console.error("Convert error:", err);
+      toast({
+        title: "Conversion failed",
+        description: err.message || "Failed to convert email to deal",
+        variant: "destructive",
+      });
+    } finally {
+      setConverting(false);
+    }
+  };
+
   const filteredEmails = emails.filter((e) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -162,6 +233,13 @@ const EmailInbox = () => {
   const formatRecipients = (addresses: any) => {
     if (!addresses || !Array.isArray(addresses)) return "";
     return addresses.map((a: any) => a.name || a.address || "").join(", ");
+  };
+
+  const getCategoryBadge = (category: string | null) => {
+    if (!category) return null;
+    const cat = EMAIL_CATEGORIES.find(c => c.key === category);
+    if (!cat) return null;
+    return <Badge className={`${cat.color} text-[10px] border`}>{cat.label}</Badge>;
   };
 
   if (selectedEmail) {
@@ -189,6 +267,7 @@ const EmailInbox = () => {
                 <Badge variant="outline" className="text-[10px]"><Paperclip className="mr-1 h-3 w-3" />Attachments</Badge>
               )}
               <Badge variant="outline" className="text-[10px] capitalize">{selectedEmail.folder}</Badge>
+              {getCategoryBadge(selectedEmail.category)}
             </div>
           </CardHeader>
           <Separator />
@@ -208,6 +287,43 @@ const EmailInbox = () => {
               <span>{selectedEmail.received_at ? format(new Date(selectedEmail.received_at), "PPpp") : "—"}</span>
             </div>
             <Separator />
+
+            {/* Categorize & Convert Actions */}
+            <div className="flex flex-wrap items-center gap-3 py-2 px-1 rounded-lg bg-muted/30 border border-border">
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs font-body text-muted-foreground">Categorize:</span>
+                <Select
+                  value={selectedEmail.category || ""}
+                  onValueChange={(val) => handleCategorize(selectedEmail.id, val)}
+                >
+                  <SelectTrigger className="h-7 w-[160px] text-xs">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EMAIL_CATEGORIES.map(cat => (
+                      <SelectItem key={cat.key} value={cat.key} className="text-xs">{cat.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Separator orientation="vertical" className="h-6" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleConvertToDeal(selectedEmail, selectedEmail.category || "deal_flow")}
+                disabled={converting}
+                className="text-xs"
+              >
+                {converting ? (
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                ) : (
+                  <Briefcase className="mr-1 h-3 w-3" />
+                )}
+                {converting ? "Creating Deal..." : "Convert to Deal"}
+              </Button>
+            </div>
+
             {selectedEmail.body_html ? (
               <div
                 className="prose prose-sm max-w-none font-body text-foreground"
@@ -385,6 +501,7 @@ const EmailInbox = () => {
                         ? `To: ${formatRecipients(email.to_addresses)}`
                         : email.from_name || email.from_address}
                     </span>
+                    {getCategoryBadge(email.category)}
                     <span className="ml-auto text-[11px] font-body text-muted-foreground flex-shrink-0 flex items-center gap-1">
                       {email.has_attachments && <Paperclip className="h-3 w-3" />}
                       {email.received_at ? format(new Date(email.received_at), "MMM d, h:mm a") : ""}

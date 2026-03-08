@@ -96,6 +96,7 @@ export type Database = {
           pitch_deck_path: string | null
           revenue: number | null
           sector: string | null
+          source_email_id: string | null
           stage: string
           status: string
           target_return: string | null
@@ -118,6 +119,7 @@ export type Database = {
           pitch_deck_path?: string | null
           revenue?: number | null
           sector?: string | null
+          source_email_id?: string | null
           stage?: string
           status?: string
           target_return?: string | null
@@ -140,18 +142,28 @@ export type Database = {
           pitch_deck_path?: string | null
           revenue?: number | null
           sector?: string | null
+          source_email_id?: string | null
           stage?: string
           status?: string
           target_return?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "deals_source_email_id_fkey"
+            columns: ["source_email_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       emails: {
         Row: {
           body_html: string | null
           body_preview: string | null
           body_text: string | null
+          category: string | null
           cc_addresses: Json | null
           conversation_id: string | null
           created_at: string
@@ -175,6 +187,7 @@ export type Database = {
           body_html?: string | null
           body_preview?: string | null
           body_text?: string | null
+          category?: string | null
           cc_addresses?: Json | null
           conversation_id?: string | null
           created_at?: string
@@ -198,6 +211,7 @@ export type Database = {
           body_html?: string | null
           body_preview?: string | null
           body_text?: string | null
+          category?: string | null
           cc_addresses?: Json | null
           conversation_id?: string | null
           created_at?: string

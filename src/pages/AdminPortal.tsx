@@ -677,7 +677,7 @@ const AdminPortal = () => {
                 </Button>
                 <Dialog open={createInvestorOpen} onOpenChange={setCreateInvestorOpen}>
                   <DialogTrigger asChild>
-                    <Button size="sm" className="bg-gradient-gold text-accent-foreground"><Plus className="mr-2 h-4 w-4" />Add Investor</Button>
+                    <Button size="sm" className="bg-gradient-royal text-accent-foreground"><Plus className="mr-2 h-4 w-4" />Add Investor</Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader><DialogTitle className="font-display text-xl">Create Investor Account</DialogTitle></DialogHeader>

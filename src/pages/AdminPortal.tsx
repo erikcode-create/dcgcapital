@@ -256,6 +256,49 @@ const AdminPortal = () => {
     setCreatingInvestor(false);
   };
 
+  const handlePitchDeckUpload = async (file: File) => {
+    setUploadingDeck(true);
+    try {
+      const filePath = `${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("pitch-decks")
+        .upload(filePath, file);
+
+      if (uploadError) {
+        toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+        setUploadingDeck(false);
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-pitch-deck`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ file_path: filePath }),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        toast({ title: "Error", description: result.error, variant: "destructive" });
+      } else {
+        toast({
+          title: "Deal created from pitch deck!",
+          description: `"${result.deal?.name}" has been added to your pipeline.`,
+        });
+        setUploadDialogOpen(false);
+        fetchAll();
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+    setUploadingDeck(false);
+  };
+
   const handleAddNote = async (dealId: string) => {
     if (!newNoteContent.trim() || !user) return;
     const { error } = await supabase.from("deal_notes").insert({

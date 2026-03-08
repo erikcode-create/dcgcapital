@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   LogOut, Plus, Trash2, Users, BarChart3, MessageSquare, Heart, Send,
   Building2, DollarSign, TrendingUp, Eye, Edit, ChevronRight, ArrowRight,
-  Briefcase, MapPin, Phone, Mail, FileText, Clock, User
+  Briefcase, MapPin, Phone, Mail, FileText, Clock, User, Upload, Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 

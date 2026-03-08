@@ -79,6 +79,9 @@ const DealDetail = () => {
   const [selectedEmail, setSelectedEmail] = useState<any>(null);
   const [aiSuggestions, setAiSuggestions] = useState<any>(null);
   const [analyzingOverview, setAnalyzingOverview] = useState(false);
+  const [allDeals, setAllDeals] = useState<any[]>([]);
+  const [reassignEmailId, setReassignEmailId] = useState<string | null>(null);
+  const [reassignDealId, setReassignDealId] = useState("");
 
   const fetchDeal = useCallback(async () => {
     if (!id) return;
@@ -141,8 +144,26 @@ const DealDetail = () => {
     }
   }, [id]);
 
+  const fetchAllDeals = useCallback(async () => {
+    const { data } = await supabase.from("deals").select("id, name").order("name");
+    if (data) setAllDeals(data.filter(d => d.id !== id));
+  }, [id]);
+
+  const handleReassignEmail = async (dealEmailId: string, emailId: string, newDealId: string) => {
+    const { error } = await supabase.from("deal_emails").update({ deal_id: newDealId }).eq("id", dealEmailId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Email moved to another deal" });
+      setReassignEmailId(null);
+      setReassignDealId("");
+      fetchRelated();
+    }
+  };
+
   useEffect(() => { fetchDeal(); }, [fetchDeal]);
   useEffect(() => { fetchRelated(); }, [fetchRelated]);
+  useEffect(() => { fetchAllDeals(); }, [fetchAllDeals]);
 
   const handleSave = async () => {
     if (!deal) return;
@@ -768,10 +789,54 @@ const DealDetail = () => {
                                 <p className="font-body text-xs text-muted-foreground mt-1 line-clamp-2">{email.body_preview}</p>
                               )}
                             </div>
-                            <span className="font-body text-[11px] text-muted-foreground whitespace-nowrap ml-3">
-                              {email.received_at ? format(new Date(email.received_at), "MMM d, h:mm a") : ""}
-                            </span>
+                            <div className="flex items-center gap-2 ml-3">
+                              <span className="font-body text-[11px] text-muted-foreground whitespace-nowrap">
+                                {email.received_at ? format(new Date(email.received_at), "MMM d, h:mm a") : ""}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setReassignEmailId(reassignEmailId === de.id ? null : de.id);
+                                  setReassignDealId("");
+                                }}
+                              >
+                                Move
+                              </Button>
+                            </div>
                           </div>
+                          {reassignEmailId === de.id && (
+                            <div className="mt-2 flex items-center gap-2 p-2 rounded-lg border border-accent/30 bg-accent/5" onClick={(e) => e.stopPropagation()}>
+                              <Select value={reassignDealId} onValueChange={setReassignDealId}>
+                                <SelectTrigger className="flex-1 h-8 text-xs">
+                                  <SelectValue placeholder="Select deal..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {allDeals.map(d => (
+                                    <SelectItem key={d.id} value={d.id} className="text-xs">{d.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                size="sm"
+                                className="h-8 text-xs"
+                                disabled={!reassignDealId}
+                                onClick={() => handleReassignEmail(de.id, email.id, reassignDealId)}
+                              >
+                                Move
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 text-xs"
+                                onClick={() => { setReassignEmailId(null); setReassignDealId(""); }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          )}
                           {selectedEmail?.id === email.id && (
                             <div className="mt-3 pt-3 border-t border-border">
                               {email.body_html ? (

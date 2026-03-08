@@ -280,7 +280,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded bg-gradient-gold" />
+              <div className="h-8 w-8 rounded bg-gradient-royal" />
               <div>
                 <h3 className="font-display text-lg font-semibold text-card-foreground">Fitzpatrick Capital Partners</h3>
               </div>

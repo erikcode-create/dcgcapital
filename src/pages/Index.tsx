@@ -123,7 +123,7 @@ const Index = () => {
       </section>
 
       {/* Strategy */}
-      <section id="strategy" className="bg-gradient-navy py-32">
+      <section id="strategy" className="bg-gradient-dark py-32">
         <div className="container mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
             <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-maroon-light">Investment Strategy</p>

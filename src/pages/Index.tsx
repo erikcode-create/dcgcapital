@@ -61,7 +61,7 @@ const Index = () => {
         </div>
         <div className="container relative z-10 mx-auto px-6 text-center">
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
-            <p className="font-body mb-6 text-sm uppercase tracking-[0.3em] text-gold-light">Private Equity</p>
+            <p className="font-body mb-6 text-sm uppercase tracking-[0.3em] text-maroon-light">Private Equity</p>
           </motion.div>
           <motion.h1
             initial="hidden" animate="visible" variants={fadeUp} custom={1}
@@ -126,7 +126,7 @@ const Index = () => {
       <section id="strategy" className="bg-gradient-navy py-32">
         <div className="container mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
-            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-gold-light">Investment Strategy</p>
+            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-maroon-light">Investment Strategy</p>
             <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">Focused on the <span className="text-gradient-gold font-medium">Middle Market</span></h2>
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
@@ -138,7 +138,7 @@ const Index = () => {
             ].map((item, i) => (
               <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i + 1}
                 className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/5 p-8 backdrop-blur-sm">
-                <item.icon className="h-8 w-8 text-gold" />
+                <item.icon className="h-8 w-8 text-maroon" />
                 <h3 className="font-display mt-6 text-xl font-medium text-primary-foreground">{item.title}</h3>
                 <p className="font-body mt-3 text-sm text-primary-foreground/50">{item.desc}</p>
               </motion.div>
@@ -147,11 +147,11 @@ const Index = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={5} className="mx-auto mt-16 max-w-2xl">
             <div className="grid grid-cols-2 gap-8 rounded-xl border border-primary-foreground/10 bg-primary-foreground/5 p-8 text-center">
               <div>
-                <p className="font-display text-3xl font-semibold text-gold">$25M – $150M</p>
+                <p className="font-display text-3xl font-semibold text-maroon">$25M – $150M</p>
                 <p className="font-body mt-2 text-sm text-primary-foreground/50">Enterprise Value</p>
               </div>
               <div>
-                <p className="font-display text-3xl font-semibold text-gold">$10M – $75M</p>
+                <p className="font-display text-3xl font-semibold text-maroon">$10M – $75M</p>
                 <p className="font-body mt-2 text-sm text-primary-foreground/50">Equity Investment</p>
               </div>
             </div>
@@ -188,7 +188,7 @@ const Index = () => {
       <section id="track-record" className="bg-gradient-navy py-32">
         <div className="container mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
-            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-gold-light">Track Record</p>
+            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-maroon-light">Track Record</p>
             <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">Proven <span className="text-gradient-gold font-medium">Results</span></h2>
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-4">
@@ -200,7 +200,7 @@ const Index = () => {
             ].map((stat, i) => (
               <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i + 1}
                 className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/5 p-8 text-center">
-                <p className="font-display text-4xl font-semibold text-gold md:text-5xl">{stat.value}</p>
+                <p className="font-display text-4xl font-semibold text-maroon md:text-5xl">{stat.value}</p>
                 <p className="font-body mt-3 text-sm text-primary-foreground/50">{stat.label}</p>
               </motion.div>
             ))}

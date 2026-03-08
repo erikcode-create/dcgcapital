@@ -214,6 +214,80 @@ export type Database = {
           },
         ]
       }
+      nda_signatures: {
+        Row: {
+          created_at: string
+          id: string
+          investor_id: string
+          ip_address: string | null
+          nda_template_id: string
+          signature_date: string
+          signature_name: string
+          signed_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          investor_id: string
+          ip_address?: string | null
+          nda_template_id: string
+          signature_date?: string
+          signature_name: string
+          signed_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          investor_id?: string
+          ip_address?: string | null
+          nda_template_id?: string
+          signature_date?: string
+          signature_name?: string
+          signed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nda_signatures_nda_template_id_fkey"
+            columns: ["nda_template_id"]
+            isOneToOne: false
+            referencedRelation: "nda_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nda_templates: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company: string | null

@@ -320,6 +320,7 @@ const AdminPortal = () => {
     }
   };
 
+  const handleAddNote = async (dealId: string) => {
     if (!newNoteContent.trim() || !user) return;
     const { error } = await supabase.from("deal_notes").insert({
       deal_id: dealId,

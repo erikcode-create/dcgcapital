@@ -1,45 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Shield } from "lucide-react";
+import { ArrowLeft, Shield, Mail, CheckCircle } from "lucide-react";
 
 const Login = () => {
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [signupEmail, setSignupEmail] = useState("");
-  const [signupPassword, setSignupPassword] = useState("");
-  const [signupName, setSignupName] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [showForgot, setShowForgot] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin + "/login",
+      },
     });
     setLoading(false);
     if (error) {
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      if (error.message.includes("Signups not allowed")) {
+        toast({
+          title: "Access denied",
+          description: "You don't have an account. Please contact an admin to get invited.",
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      }
     } else {
-      // Role-based redirect will happen via AuthContext
+      setMagicLinkSent(true);
+    }
+  };
+
+  // Check if user just arrived via magic link (session will be set by onAuthStateChange)
+  // AuthContext handles session — we just need to redirect once authenticated
+  const checkSessionAndRedirect = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id ?? "")
+        .eq("user_id", session.user.id)
         .single();
-      
-      if (roleData && roleData.role === "admin") {
+
+      if (roleData?.role === "admin") {
         navigate("/admin");
       } else {
         navigate("/portal");
@@ -47,39 +59,9 @@ const Login = () => {
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: signupEmail,
-      password: signupPassword,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { full_name: signupName },
-      },
-    });
-    setLoading(false);
-    if (error) {
-      toast({ title: "Signup failed", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Check your email", description: "We've sent you a verification link." });
-    }
-  };
-
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setLoading(false);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Check your email", description: "We've sent you a password reset link." });
-      setShowForgot(false);
-    }
-  };
+  // On mount, check if returning from magic link
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { checkSessionAndRedirect(); }, []);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6">
@@ -101,96 +83,65 @@ const Login = () => {
           <p className="font-body mt-2 text-sm text-muted-foreground">Fitzpatrick Capital Partners</p>
         </div>
 
-        {showForgot ? (
-          <Card className="border-border bg-card backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="font-display text-xl text-foreground">Reset Password</CardTitle>
-              <CardDescription className="text-muted-foreground">Enter your email to receive a reset link</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div>
-                  <Label className="text-foreground/70">Email</Label>
-                  <Input type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)}
-                    required maxLength={255} className="mt-1 border-border bg-secondary text-foreground" />
+        <Card className="border-border bg-card backdrop-blur-sm">
+          {magicLinkSent ? (
+            <>
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
+                  <CheckCircle className="h-6 w-6 text-accent" />
                 </div>
-                <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
-                  {loading ? "Sending..." : "Send Reset Link"}
-                </Button>
-                <button type="button" onClick={() => setShowForgot(false)}
-                  className="font-body w-full text-center text-sm text-muted-foreground hover:text-foreground">
-                  Back to login
+                <CardTitle className="font-display text-xl text-foreground">Check your email</CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  We've sent a sign-in link to <span className="font-medium text-foreground">{email}</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="font-body text-center text-sm text-muted-foreground">
+                  Click the link in your email to sign in. The link expires in 1 hour.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setMagicLinkSent(false)}
+                  className="font-body w-full text-center text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Use a different email
                 </button>
-              </form>
-            </CardContent>
-          </Card>
-        ) : (
-          <Tabs defaultValue="login">
-            <TabsList className="grid w-full grid-cols-2 bg-secondary">
-              <TabsTrigger value="login" className="font-body text-sm">Sign In</TabsTrigger>
-              <TabsTrigger value="signup" className="font-body text-sm">Request Access</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login">
-              <Card className="border-border bg-card backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="font-display text-xl text-foreground">Welcome Back</CardTitle>
-                  <CardDescription className="text-muted-foreground">Sign in to your investor account</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleLogin} className="space-y-4">
-                    <div>
-                      <Label className="text-foreground/70">Email</Label>
-                      <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
-                        required maxLength={255} className="mt-1 border-border bg-secondary text-foreground" />
-                    </div>
-                    <div>
-                      <Label className="text-foreground/70">Password</Label>
-                      <Input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}
-                        required className="mt-1 border-border bg-secondary text-foreground" />
-                    </div>
-                    <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
-                      {loading ? "Signing in..." : "Sign In"}
-                    </Button>
-                    <button type="button" onClick={() => setShowForgot(true)}
-                      className="font-body w-full text-center text-sm text-muted-foreground hover:text-foreground">
-                      Forgot password?
-                    </button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="signup">
-              <Card className="border-border bg-card backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="font-display text-xl text-foreground">Request Access</CardTitle>
-                  <CardDescription className="text-muted-foreground">Create an account to request investor access</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSignup} className="space-y-4">
-                    <div>
-                      <Label className="text-foreground/70">Full Name</Label>
-                      <Input value={signupName} onChange={(e) => setSignupName(e.target.value)}
-                        required maxLength={100} className="mt-1 border-border bg-secondary text-foreground" />
-                    </div>
-                    <div>
-                      <Label className="text-foreground/70">Email</Label>
-                      <Input type="email" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)}
-                        required maxLength={255} className="mt-1 border-border bg-secondary text-foreground" />
-                    </div>
-                    <div>
-                      <Label className="text-foreground/70">Password</Label>
-                      <Input type="password" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)}
-                        required minLength={8} className="mt-1 border-border bg-secondary text-foreground" />
-                    </div>
-                    <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
-                      {loading ? "Creating..." : "Request Access"}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        )}
+              </CardContent>
+            </>
+          ) : (
+            <>
+              <CardHeader>
+                <CardTitle className="font-display text-xl text-foreground">Sign In</CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  Enter your email to receive a secure sign-in link
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleMagicLink} className="space-y-4">
+                  <div>
+                    <Label className="text-foreground/70">Email</Label>
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      required
+                      maxLength={255}
+                      className="mt-1 border-border bg-secondary text-foreground"
+                    />
+                  </div>
+                  <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
+                    <Mail className="mr-2 h-4 w-4" />
+                    {loading ? "Sending..." : "Send Magic Link"}
+                  </Button>
+                </form>
+                <p className="font-body mt-6 text-center text-xs text-muted-foreground">
+                  Access is invite-only. Contact your admin if you don't have an account.
+                </p>
+              </CardContent>
+            </>
+          )}
+        </Card>
       </div>
     </div>
   );

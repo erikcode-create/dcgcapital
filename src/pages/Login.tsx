@@ -94,7 +94,7 @@ const Login = () => {
         </Link>
 
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-gold">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-royal">
             <Shield className="h-6 w-6 text-accent-foreground" />
           </div>
           <h1 className="font-display text-3xl font-light text-primary-foreground">Investor Portal</h1>

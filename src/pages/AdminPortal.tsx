@@ -151,7 +151,7 @@ const AdminPortal = () => {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const fetchDealDocuments = useCallback(async (dealId?: string) => {
-    const query = supabase.from("deal_documents").select("*").order("created_at", { ascending: false });
+    const query = (supabase as any).from("deal_documents").select("*").order("created_at", { ascending: false });
     if (dealId) query.eq("deal_id", dealId);
     const { data } = await query;
     if (data) setDealDocuments(data);
@@ -170,7 +170,7 @@ const AdminPortal = () => {
         .upload(filePath, file);
       if (uploadError) throw uploadError;
 
-      const { error: insertError } = await supabase.from("deal_documents").insert({
+      const { data: insertedDoc, error: insertError } = await (supabase as any).from("deal_documents").insert({
         deal_id: dealId,
         file_name: file.name,
         file_path: filePath,
@@ -179,11 +179,27 @@ const AdminPortal = () => {
         document_type: docType,
         uploaded_by: user?.id,
         source: "manual",
-      });
+      }).select().single();
       if (insertError) throw insertError;
 
-      toast({ title: "Document uploaded", description: file.name });
+      toast({ title: "Document uploaded", description: `${file.name} — AI analysis starting...` });
       fetchDealDocuments(dealId);
+
+      // Trigger AI analysis in the background
+      if (insertedDoc?.id) {
+        const { data: { session } } = await supabase.auth.getSession();
+        supabase.functions.invoke("analyze-document", {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+          body: { document_id: insertedDoc.id },
+        }).then(({ data, error }) => {
+          if (error) {
+            console.error("AI analysis failed:", error);
+          } else {
+            toast({ title: "AI Analysis Complete", description: `Summary generated for ${file.name}` });
+            fetchDealDocuments(dealId);
+          }
+        });
+      }
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {

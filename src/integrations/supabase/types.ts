@@ -45,6 +45,7 @@ export type Database = {
       }
       deal_documents: {
         Row: {
+          ai_summary: string | null
           content_type: string | null
           created_at: string
           deal_id: string
@@ -57,6 +58,7 @@ export type Database = {
           uploaded_by: string | null
         }
         Insert: {
+          ai_summary?: string | null
           content_type?: string | null
           created_at?: string
           deal_id: string
@@ -69,6 +71,7 @@ export type Database = {
           uploaded_by?: string | null
         }
         Update: {
+          ai_summary?: string | null
           content_type?: string | null
           created_at?: string
           deal_id?: string

@@ -72,9 +72,15 @@ serve(async (req) => {
       });
     }
 
-    // Convert to base64 for the AI
-    const arrayBuffer = await fileData.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    // Convert to base64 in chunks to avoid stack overflow
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = "";
+    const chunkSize = 8192;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      binary += String.fromCharCode(...chunk);
+    }
+    const base64 = btoa(binary);
 
     // Determine mime type
     const ext = file_path.split(".").pop()?.toLowerCase();

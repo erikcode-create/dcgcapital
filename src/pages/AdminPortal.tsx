@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,10 +60,14 @@ const AdminPortal = () => {
   const [detailDeal, setDetailDeal] = useState<any | null>(null);
   const [editingDeal, setEditingDeal] = useState<any | null>(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [createInvestorOpen, setCreateInvestorOpen] = useState(false);
   const [selectedDealId, setSelectedDealId] = useState("");
   const [selectedInvestorId, setSelectedInvestorId] = useState("");
   const [replyContent, setReplyContent] = useState<Record<string, string>>({});
   const [newNoteContent, setNewNoteContent] = useState("");
+  const [newInvestor, setNewInvestor] = useState({ email: "", password: "", full_name: "", company: "", phone: "" });
+  const [creatingInvestor, setCreatingInvestor] = useState(false);
+  const navigate = useNavigate();
   const [newDeal, setNewDeal] = useState({
     name: "", description: "", sector: "", target_return: "", status: "active",
     stage: "sourcing", enterprise_value: "", ebitda: "", revenue: "",
@@ -176,6 +181,37 @@ const AdminPortal = () => {
       toast({ title: "Deal assigned to investor" });
       setAssignDialogOpen(false);
     }
+  };
+
+  const handleCreateInvestor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingInvestor(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-investor`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(newInvestor),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        toast({ title: "Error", description: result.error, variant: "destructive" });
+      } else {
+        toast({ title: "Investor created", description: `${newInvestor.full_name} can now log in with their credentials.` });
+        setNewInvestor({ email: "", password: "", full_name: "", company: "", phone: "" });
+        setCreateInvestorOpen(false);
+        fetchAll();
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+    setCreatingInvestor(false);
   };
 
   const handleAddNote = async (dealId: string) => {
@@ -477,7 +513,30 @@ const AdminPortal = () => {
           <TabsContent value="investors">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="font-display text-2xl text-foreground">Investor Directory</h2>
-              <p className="font-body text-sm text-muted-foreground">{investors.length} investors</p>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => navigate("/portal")}>
+                  <Eye className="mr-2 h-4 w-4" />View as Investor
+                </Button>
+                <Dialog open={createInvestorOpen} onOpenChange={setCreateInvestorOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-gradient-gold text-accent-foreground"><Plus className="mr-2 h-4 w-4" />Add Investor</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader><DialogTitle className="font-display text-xl">Create Investor Account</DialogTitle></DialogHeader>
+                    <form onSubmit={handleCreateInvestor} className="space-y-4">
+                      <div><Label>Full Name *</Label><Input value={newInvestor.full_name} onChange={(e) => setNewInvestor({ ...newInvestor, full_name: e.target.value })} required maxLength={100} className="mt-1" /></div>
+                      <div><Label>Email *</Label><Input type="email" value={newInvestor.email} onChange={(e) => setNewInvestor({ ...newInvestor, email: e.target.value })} required maxLength={255} className="mt-1" /></div>
+                      <div><Label>Temporary Password *</Label><Input type="text" value={newInvestor.password} onChange={(e) => setNewInvestor({ ...newInvestor, password: e.target.value })} required minLength={8} className="mt-1" placeholder="Min 8 characters" /></div>
+                      <div><Label>Company</Label><Input value={newInvestor.company} onChange={(e) => setNewInvestor({ ...newInvestor, company: e.target.value })} maxLength={100} className="mt-1" /></div>
+                      <div><Label>Phone</Label><Input value={newInvestor.phone} onChange={(e) => setNewInvestor({ ...newInvestor, phone: e.target.value })} maxLength={20} className="mt-1" /></div>
+                      <Button type="submit" disabled={creatingInvestor} className="w-full bg-gradient-gold text-accent-foreground">
+                        {creatingInvestor ? "Creating..." : "Create Investor Account"}
+                      </Button>
+                      <p className="font-body text-xs text-muted-foreground text-center">The investor will be able to log in immediately with these credentials.</p>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {investors.map((inv) => (

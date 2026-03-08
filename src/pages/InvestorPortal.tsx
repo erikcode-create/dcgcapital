@@ -6,11 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, TrendingUp, MessageSquare, Heart, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { LogOut, TrendingUp, MessageSquare, Heart, User, ArrowLeft, Eye } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const InvestorPortal = () => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, userRole, signOut } = useAuth();
+  const isAdminViewing = userRole === "admin";
+  const navigate = useNavigate();
   const [deals, setDeals] = useState<any[]>([]);
   const [messages, setMessages] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -22,13 +24,23 @@ const InvestorPortal = () => {
 
   const fetchDeals = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("deal_assignments")
-      .select("deal_id, deals(*)")
-      .eq("investor_id", user.id);
     
-    if (data) {
-      setDeals(data.map((d: any) => d.deals).filter(Boolean));
+    if (isAdminViewing) {
+      // Admin sees ALL deals
+      const { data } = await supabase
+        .from("deals")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (data) setDeals(data);
+    } else {
+      // Investor sees only assigned deals
+      const { data } = await supabase
+        .from("deal_assignments")
+        .select("deal_id, deals(*)")
+        .eq("investor_id", user.id);
+      if (data) {
+        setDeals(data.map((d: any) => d.deals).filter(Boolean));
+      }
     }
     setLoading(false);
   };
@@ -77,6 +89,18 @@ const InvestorPortal = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Admin Preview Banner */}
+      {isAdminViewing && (
+        <div className="bg-gradient-gold px-6 py-2 text-center">
+          <div className="container mx-auto flex items-center justify-center gap-3">
+            <Eye className="h-4 w-4 text-accent-foreground" />
+            <span className="font-body text-sm font-medium text-accent-foreground">Admin Preview — You're viewing the investor portal as an admin</span>
+            <Button size="sm" variant="outline" className="ml-4 h-7 border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10" onClick={() => navigate("/admin")}>
+              <ArrowLeft className="mr-1 h-3 w-3" />Back to Admin
+            </Button>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">

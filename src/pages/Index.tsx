@@ -126,7 +126,7 @@ const Index = () => {
       <section id="strategy" className="bg-gradient-navy py-32">
         <div className="container mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
-            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-gold-light">Investment Strategy</p>
+            <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-maroon-light">Investment Strategy</p>
             <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">Focused on the <span className="text-gradient-gold font-medium">Middle Market</span></h2>
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-4">

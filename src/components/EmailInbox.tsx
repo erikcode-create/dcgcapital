@@ -418,7 +418,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleConvertToDeal(selectedEmail, selectedEmail.category || "deal_flow")}
+                onClick={() => handleConvertToDeal(selectedEmail, selectedEmail.category || "equity")}
                 disabled={converting}
                 className="text-xs"
               >

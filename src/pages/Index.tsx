@@ -147,7 +147,7 @@ const Index = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={5} className="mx-auto mt-16 max-w-2xl">
             <div className="grid grid-cols-2 gap-8 rounded-xl border border-primary-foreground/10 bg-primary-foreground/5 p-8 text-center">
               <div>
-                <p className="font-display text-3xl font-semibold text-maroon">$25M – $150M</p>
+                <p className="font-display text-3xl font-semibold text-royal">$25M – $150M</p>
                 <p className="font-body mt-2 text-sm text-primary-foreground/50">Enterprise Value</p>
               </div>
               <div>

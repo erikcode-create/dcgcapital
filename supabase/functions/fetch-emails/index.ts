@@ -38,6 +38,58 @@ async function getAccessToken(): Promise<string> {
 
 const MAILBOX = "data@fitzcap.co";
 
+async function classifyEmailWithAI(subject: string, bodyPreview: string): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) {
+    console.warn("No LOVABLE_API_KEY, defaulting to equity");
+    return "equity";
+  }
+
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content: `You are an email classifier for a private equity / investment firm. Classify emails into exactly one category based on the deal type being discussed. Respond with ONLY one of these exact words: equity, debt, revenue_seeking
+
+- equity: Deals involving equity investments, buyouts, acquisitions, mergers, equity fundraising, venture capital, growth equity
+- debt: Deals involving loans, credit facilities, bonds, mezzanine financing, debt restructuring, refinancing
+- revenue_seeking: Companies seeking revenue growth, partnerships, business development, sales opportunities, service offerings
+
+If unclear, default to "equity".`,
+          },
+          {
+            role: "user",
+            content: `Subject: ${subject || "(No Subject)"}\n\nPreview: ${bodyPreview || "(No preview)"}`,
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("AI classification failed:", response.status);
+      return "equity";
+    }
+
+    const data = await response.json();
+    const result = (data.choices?.[0]?.message?.content || "equity").trim().toLowerCase();
+    if (["equity", "debt", "revenue_seeking"].includes(result)) {
+      return result;
+    }
+    return "equity";
+  } catch (err) {
+    console.error("AI classification error:", err);
+    return "equity";
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -109,6 +161,9 @@ Deno.serve(async (req) => {
     const emails = graphData.value || [];
     let inserted = 0;
 
+    // Track new inbox email IDs for auto-processing
+    const newInboxEmailIds: string[] = [];
+
     for (const email of emails) {
       const record = {
         microsoft_id: email.id,
@@ -136,11 +191,18 @@ Deno.serve(async (req) => {
         is_draft: email.isDraft || false,
       };
 
-      const { error } = await supabase
+      const { data: upsertData, error } = await supabase
         .from("emails")
-        .upsert(record, { onConflict: "microsoft_id" });
+        .upsert(record, { onConflict: "microsoft_id" })
+        .select("id")
+        .single();
 
-      if (!error) inserted++;
+      if (!error) {
+        inserted++;
+        if (upsertData?.id) {
+          newInboxEmailIds.push(upsertData.id);
+        }
+      }
     }
 
     // Also fetch sent items
@@ -187,15 +249,66 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Auto-link emails to deals by conversation_id
-    // Find all deals that have a source_email with a conversation_id
+    // ========== AUTO-CATEGORIZE NEW EMAILS ==========
+    // Build conversation_id -> category map from already-categorized emails
+    const { data: categorizedEmails } = await supabase
+      .from("emails")
+      .select("conversation_id, category")
+      .not("category", "is", null)
+      .not("conversation_id", "is", null);
+
+    const convCategoryMap: Record<string, string> = {};
+    if (categorizedEmails) {
+      for (const e of categorizedEmails) {
+        if (e.conversation_id && e.category) {
+          convCategoryMap[e.conversation_id] = e.category;
+        }
+      }
+    }
+
+    // Get the new inbox emails that need categorization
+    if (newInboxEmailIds.length > 0) {
+      const { data: newEmails } = await supabase
+        .from("emails")
+        .select("id, subject, body_preview, conversation_id, category")
+        .in("id", newInboxEmailIds);
+
+      if (newEmails) {
+        for (const email of newEmails) {
+          if (email.category) continue; // already categorized
+
+          let category: string;
+          // If conversation already has a category, inherit it
+          if (email.conversation_id && convCategoryMap[email.conversation_id]) {
+            category = convCategoryMap[email.conversation_id];
+          } else {
+            // Use AI to classify
+            category = await classifyEmailWithAI(email.subject || "", email.body_preview || "");
+            // Store in map for other emails in same conversation
+            if (email.conversation_id) {
+              convCategoryMap[email.conversation_id] = category;
+            }
+          }
+
+          // Update the email category
+          await supabase
+            .from("emails")
+            .update({ category })
+            .eq("id", email.id);
+        }
+      }
+    }
+
+    // ========== AUTO-LINK & AUTO-CONVERT ==========
+    // First, auto-link emails to existing deals by conversation_id
     const { data: dealsWithEmails } = await supabase
       .from("deals")
       .select("id, source_email_id")
       .not("source_email_id", "is", null);
 
+    const convDealMap: Record<string, string> = {}; // conversation_id -> deal_id
+
     if (dealsWithEmails && dealsWithEmails.length > 0) {
-      // Get conversation_ids for those source emails
       const sourceEmailIds = dealsWithEmails.map(d => d.source_email_id).filter(Boolean);
       const { data: sourceEmails } = await supabase
         .from("emails")
@@ -204,16 +317,14 @@ Deno.serve(async (req) => {
         .not("conversation_id", "is", null);
 
       if (sourceEmails) {
-        const convMap: Record<string, string> = {}; // conversation_id -> deal_id
         for (const se of sourceEmails) {
           const deal = dealsWithEmails.find(d => d.source_email_id === se.id);
           if (deal && se.conversation_id) {
-            convMap[se.conversation_id] = deal.id;
+            convDealMap[se.conversation_id] = deal.id;
           }
         }
 
-        // Find all emails matching those conversation_ids
-        const convIds = Object.keys(convMap);
+        const convIds = Object.keys(convDealMap);
         if (convIds.length > 0) {
           const { data: matchingEmails } = await supabase
             .from("emails")
@@ -222,19 +333,74 @@ Deno.serve(async (req) => {
 
           if (matchingEmails) {
             const linkInserts = matchingEmails
-              .filter(e => e.conversation_id && convMap[e.conversation_id])
+              .filter(e => e.conversation_id && convDealMap[e.conversation_id])
               .map(e => ({
-                deal_id: convMap[e.conversation_id!],
+                deal_id: convDealMap[e.conversation_id!],
                 email_id: e.id,
                 linked_by: "auto",
               }));
 
             if (linkInserts.length > 0) {
-              // Upsert to avoid duplicates
               await supabase
                 .from("deal_emails")
                 .upsert(linkInserts, { onConflict: "deal_id,email_id" });
             }
+          }
+        }
+      }
+    }
+
+    // Now auto-convert new inbox emails that are NOT yet linked to any deal
+    if (newInboxEmailIds.length > 0) {
+      // Get which of the new emails are already linked
+      const { data: alreadyLinked } = await supabase
+        .from("deal_emails")
+        .select("email_id")
+        .in("email_id", newInboxEmailIds);
+
+      const linkedSet = new Set((alreadyLinked || []).map(d => d.email_id));
+
+      // Also skip if conversation_id already maps to a deal
+      const { data: newEmailsFull } = await supabase
+        .from("emails")
+        .select("id, conversation_id, category, subject, from_name, from_address")
+        .in("id", newInboxEmailIds);
+
+      if (newEmailsFull) {
+        for (const email of newEmailsFull) {
+          // Skip if already linked to a deal
+          if (linkedSet.has(email.id)) continue;
+          // Skip if conversation already has a deal
+          if (email.conversation_id && convDealMap[email.conversation_id]) continue;
+
+          // Auto-convert: call convert-email-to-deal function
+          try {
+            const convertUrl = `${supabaseUrl}/functions/v1/convert-email-to-deal`;
+            const convertRes = await fetch(convertUrl, {
+              method: "POST",
+              headers: {
+                Authorization: authHeader,
+                "Content-Type": "application/json",
+                apikey: Deno.env.get("SUPABASE_ANON_KEY")!,
+              },
+              body: JSON.stringify({
+                email_id: email.id,
+                category: email.category || "equity",
+              }),
+            });
+
+            if (convertRes.ok) {
+              const convertData = await convertRes.json();
+              console.log(`Auto-converted email "${email.subject}" to deal: ${convertData.deal?.name || "unknown"}`);
+              // Track the new deal's conversation mapping
+              if (email.conversation_id && convertData.deal?.id) {
+                convDealMap[email.conversation_id] = convertData.deal.id;
+              }
+            } else {
+              console.error(`Auto-convert failed for email ${email.id}:`, await convertRes.text());
+            }
+          } catch (err) {
+            console.error(`Auto-convert error for email ${email.id}:`, err);
           }
         }
       }

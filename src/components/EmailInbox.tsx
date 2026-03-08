@@ -91,17 +91,26 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
 
   const fetchEmails = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("emails")
-      .select("*")
-      .eq("folder", activeFolder)
-      .order("received_at", { ascending: false })
-      .limit(100);
+    // Fetch emails and filter out ones already linked to deals
+    const [emailsResult, linkedResult] = await Promise.all([
+      supabase
+        .from("emails")
+        .select("*")
+        .eq("folder", activeFolder)
+        .order("received_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("deal_emails")
+        .select("email_id"),
+    ]);
 
-    if (error) {
-      console.error("Error fetching emails:", error);
+    if (emailsResult.error) {
+      console.error("Error fetching emails:", emailsResult.error);
+      setEmails([]);
     } else {
-      setEmails((data as Email[]) || []);
+      const linkedIds = new Set((linkedResult.data || []).map(d => d.email_id));
+      const unlinkedEmails = (emailsResult.data || []).filter(e => !linkedIds.has(e.id));
+      setEmails(unlinkedEmails as Email[]);
     }
     setLoading(false);
   }, [activeFolder]);

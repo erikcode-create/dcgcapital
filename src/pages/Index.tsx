@@ -174,7 +174,7 @@ const Index = () => {
             ].map((member, i) => (
               <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i + 1}
                 className="group rounded-xl border border-border bg-card p-8 text-center transition-all hover:border-accent/30">
-                <div className="mx-auto h-24 w-24 rounded-full bg-gradient-gold opacity-80" />
+                <div className="mx-auto h-24 w-24 rounded-full bg-gradient-royal opacity-80" />
                 <h3 className="font-display mt-6 text-2xl font-medium text-card-foreground">{member.name}</h3>
                 <p className="font-body mt-1 text-sm font-medium text-accent">{member.title}</p>
                 <p className="font-body mt-4 text-sm leading-relaxed text-muted-foreground">{member.bio}</p>

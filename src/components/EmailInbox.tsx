@@ -337,6 +337,23 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
             <ChevronLeft className="mr-1 h-4 w-4" /> Back
           </Button>
           <div className="ml-auto flex gap-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                  <Trash2 className="mr-1 h-4 w-4" /> Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this email?</AlertDialogTitle>
+                  <AlertDialogDescription>This will permanently remove this email from the inbox. This action cannot be undone.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => handleDeleteEmail(selectedEmail.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button variant="outline" size="sm" onClick={() => setReplyOpen(true)}>
               <Reply className="mr-1 h-4 w-4" /> Reply
             </Button>

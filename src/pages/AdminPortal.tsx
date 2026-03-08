@@ -785,6 +785,10 @@ const AdminPortal = () => {
           <TabsContent value="nda">
             <NdaManager investors={investors} />
           </TabsContent>
+          {/* Email Tab */}
+          <TabsContent value="email">
+            <EmailInbox />
+          </TabsContent>
         </Tabs>
       </main>
 

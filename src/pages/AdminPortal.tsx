@@ -615,7 +615,7 @@ const AdminPortal = () => {
                 <TableBody>
                   {interests.map((int) => (
                     <TableRow key={int.id}>
-                      <TableCell className="font-body font-medium">{(int.profiles as any)?.full_name || (int.profiles as any)?.email || "—"}</TableCell>
+                      <TableCell className="font-body font-medium">{int.investor_profile?.full_name || int.investor_profile?.email || "—"}</TableCell>
                       <TableCell className="font-body text-muted-foreground">{(int.deals as any)?.name || "—"}</TableCell>
                       <TableCell><Badge variant="outline" className="font-body">{int.status}</Badge></TableCell>
                       <TableCell className="font-body text-sm text-muted-foreground">{int.created_at ? format(new Date(int.created_at), "MMM d, yyyy") : ""}</TableCell>

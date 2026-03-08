@@ -78,20 +78,60 @@ const AdminPortal = () => {
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [dealsRes, investorsRes, interestsRes, messagesRes, notesRes] = await Promise.all([
+    const [dealsRes, profilesRes, rolesRes, interestsRes, messagesRes, notesRes] = await Promise.all([
       supabase.from("deals").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("*, user_roles(role)"),
-      supabase.from("interest_expressions").select("*, deals(name), profiles:investor_id(full_name, email)"),
-      supabase.from("messages").select("*, deals(name), profiles:sender_id(full_name, email)").order("created_at", { ascending: false }),
-      supabase.from("deal_notes").select("*, profiles:author_id(full_name)").order("created_at", { ascending: false }),
+      supabase.from("profiles").select("*"),
+      supabase.from("user_roles").select("*"),
+      supabase.from("interest_expressions").select("*, deals(name)"),
+      supabase.from("messages").select("*, deals(name)").order("created_at", { ascending: false }),
+      supabase.from("deal_notes").select("*").order("created_at", { ascending: false }),
     ]);
     if (dealsRes.data) setDeals(dealsRes.data);
-    if (investorsRes.data) setInvestors(investorsRes.data.filter((p: any) =>
-      p.user_roles?.some?.((r: any) => r.role === "investor") || !p.user_roles?.length
-    ));
-    if (interestsRes.data) setInterests(interestsRes.data);
-    if (messagesRes.data) setAllMessages(messagesRes.data);
-    if (notesRes.data) setDealNotes(notesRes.data);
+
+    const profiles = profilesRes.data || [];
+    const roles = rolesRes.data || [];
+
+    // Build a map of user_id -> roles
+    const roleMap: Record<string, string[]> = {};
+    roles.forEach((r: any) => {
+      if (!roleMap[r.user_id]) roleMap[r.user_id] = [];
+      roleMap[r.user_id].push(r.role);
+    });
+
+    // Filter investors: users with 'investor' role or no role at all
+    const investorList = profiles.filter((p: any) => {
+      const userRoles = roleMap[p.id] || [];
+      return userRoles.includes("investor") || userRoles.length === 0;
+    });
+    setInvestors(investorList);
+
+    // Enrich interest expressions with profile data
+    if (interestsRes.data) {
+      const enrichedInterests = interestsRes.data.map((ie: any) => {
+        const profile = profiles.find((p: any) => p.id === ie.investor_id);
+        return { ...ie, investor_profile: profile || null };
+      });
+      setInterests(enrichedInterests);
+    }
+
+    // Enrich messages with profile data
+    if (messagesRes.data) {
+      const enrichedMessages = messagesRes.data.map((m: any) => {
+        const profile = profiles.find((p: any) => p.id === m.sender_id);
+        return { ...m, sender_profile: profile || null };
+      });
+      setAllMessages(enrichedMessages);
+    }
+
+    // Enrich notes with profile data
+    if (notesRes.data) {
+      const enrichedNotes = notesRes.data.map((n: any) => {
+        const profile = profiles.find((p: any) => p.id === n.author_id);
+        return { ...n, author_profile: profile || null };
+      });
+      setDealNotes(enrichedNotes);
+    }
+
     setLoading(false);
   }, []);
 
@@ -575,7 +615,7 @@ const AdminPortal = () => {
                 <TableBody>
                   {interests.map((int) => (
                     <TableRow key={int.id}>
-                      <TableCell className="font-body font-medium">{(int.profiles as any)?.full_name || (int.profiles as any)?.email || "—"}</TableCell>
+                      <TableCell className="font-body font-medium">{int.investor_profile?.full_name || int.investor_profile?.email || "—"}</TableCell>
                       <TableCell className="font-body text-muted-foreground">{(int.deals as any)?.name || "—"}</TableCell>
                       <TableCell><Badge variant="outline" className="font-body">{int.status}</Badge></TableCell>
                       <TableCell className="font-body text-sm text-muted-foreground">{int.created_at ? format(new Date(int.created_at), "MMM d, yyyy") : ""}</TableCell>
@@ -598,7 +638,7 @@ const AdminPortal = () => {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-body text-sm font-medium text-foreground">{(msg.profiles as any)?.full_name || (msg.profiles as any)?.email}</p>
+                        <p className="font-body text-sm font-medium text-foreground">{msg.sender_profile?.full_name || msg.sender_profile?.email}</p>
                         <p className="font-body text-xs text-muted-foreground">Re: {(msg.deals as any)?.name} · {msg.created_at ? format(new Date(msg.created_at), "MMM d h:mm a") : ""}</p>
                       </div>
                     </div>
@@ -741,7 +781,7 @@ const AdminPortal = () => {
                   {dealNotes.filter(n => n.deal_id === detailDeal.id).map((note) => (
                     <div key={note.id} className="rounded-lg bg-muted/50 p-3">
                       <div className="flex items-center justify-between">
-                        <p className="font-body text-xs font-medium text-card-foreground">{(note.profiles as any)?.full_name || "Admin"}</p>
+                        <p className="font-body text-xs font-medium text-card-foreground">{note.author_profile?.full_name || "Admin"}</p>
                         <p className="font-body text-[11px] text-muted-foreground">{note.created_at ? format(new Date(note.created_at), "MMM d h:mm a") : ""}</p>
                       </div>
                       <p className="font-body mt-1 text-sm text-muted-foreground">{note.content}</p>

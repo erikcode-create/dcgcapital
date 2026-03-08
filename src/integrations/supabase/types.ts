@@ -93,6 +93,45 @@ export type Database = {
           },
         ]
       }
+      deal_emails: {
+        Row: {
+          deal_id: string
+          email_id: string
+          id: string
+          linked_at: string
+          linked_by: string
+        }
+        Insert: {
+          deal_id: string
+          email_id: string
+          id?: string
+          linked_at?: string
+          linked_by?: string
+        }
+        Update: {
+          deal_id?: string
+          email_id?: string
+          id?: string
+          linked_at?: string
+          linked_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_emails_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_emails_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_notes: {
         Row: {
           author_id: string
@@ -130,6 +169,7 @@ export type Database = {
       }
       deals: {
         Row: {
+          category: string
           contact_email: string | null
           contact_name: string | null
           created_at: string
@@ -153,6 +193,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category?: string
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string
@@ -176,6 +217,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category?: string
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string

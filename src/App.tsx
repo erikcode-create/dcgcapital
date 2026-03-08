@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import InvestorPortal from "./pages/InvestorPortal";
 import AdminPortal from "./pages/AdminPortal";
+import DealDetail from "./pages/DealDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/portal" element={<ProtectedRoute requiredRole="investor"><InvestorPortal /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPortal /></ProtectedRoute>} />
+            <Route path="/admin/deals/:id" element={<ProtectedRoute requiredRole="admin"><DealDetail /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

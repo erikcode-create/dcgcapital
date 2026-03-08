@@ -435,6 +435,7 @@ const AdminPortal = () => {
               <TabsTrigger value="investors" className="font-body">Investors</TabsTrigger>
               <TabsTrigger value="interest" className="font-body">Interest</TabsTrigger>
               <TabsTrigger value="messages" className="font-body">Messages</TabsTrigger>
+              <TabsTrigger value="nda" className="font-body">NDA</TabsTrigger>
             </TabsList>
             <div className="flex gap-2">
               <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>

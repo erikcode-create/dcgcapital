@@ -541,7 +541,7 @@ const AdminPortal = () => {
                     </div>
                     <div><Label>Description</Label><Textarea value={newDeal.description} onChange={(e) => setNewDeal({ ...newDeal, description: e.target.value })} maxLength={2000} className="mt-1" rows={3} placeholder="Brief overview of the opportunity..." /></div>
                     <div><Label>Internal Notes</Label><Textarea value={newDeal.notes} onChange={(e) => setNewDeal({ ...newDeal, notes: e.target.value })} maxLength={2000} className="mt-1" rows={2} placeholder="Initial impressions, sourcing details..." /></div>
-                    <Button type="submit" className="w-full bg-gradient-gold text-accent-foreground">Create Deal</Button>
+                    <Button type="submit" className="w-full bg-gradient-royal text-accent-foreground">Create Deal</Button>
                   </form>
                 </DialogContent>
               </Dialog>

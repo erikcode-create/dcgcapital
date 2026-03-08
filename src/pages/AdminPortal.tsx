@@ -299,7 +299,27 @@ const AdminPortal = () => {
     setUploadingDeck(false);
   };
 
-  const handleAddNote = async (dealId: string) => {
+  const handleDownloadDeck = async (filePath: string, dealName: string) => {
+    try {
+      const { data, error } = await supabase.storage.from("pitch-decks").download(filePath);
+      if (error || !data) {
+        toast({ title: "Error", description: error?.message || "Failed to download", variant: "destructive" });
+        return;
+      }
+      const ext = filePath.split(".").pop() || "pdf";
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${dealName.replace(/[^a-zA-Z0-9]/g, "_")}_pitch_deck.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
     if (!newNoteContent.trim() || !user) return;
     const { error } = await supabase.from("deal_notes").insert({
       deal_id: dealId,

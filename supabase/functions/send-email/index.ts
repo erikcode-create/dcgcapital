@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message, comment: emailBody }),
+        body: JSON.stringify({ comment: emailBody }),
       });
 
       if (!graphRes.ok) {

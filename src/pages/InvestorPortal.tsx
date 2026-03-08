@@ -78,6 +78,27 @@ const InvestorPortal = () => {
     }
   };
 
+  const handleDownloadDeck = async (filePath: string, dealName: string) => {
+    try {
+      const { data, error } = await supabase.storage.from("pitch-decks").download(filePath);
+      if (error || !data) {
+        toast({ title: "Error", description: error?.message || "Failed to download", variant: "destructive" });
+        return;
+      }
+      const ext = filePath.split(".").pop() || "pdf";
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${dealName.replace(/[^a-zA-Z0-9]/g, "_")}_pitch_deck.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
   const statusColor = (status: string) => {
     switch (status) {
       case "active": return "bg-green-500/10 text-green-600 border-green-500/20";

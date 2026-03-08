@@ -79,7 +79,7 @@ const Index = () => {
           </motion.p>
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3} className="mt-12 flex items-center justify-center gap-4">
             <a href="#about">
-              <Button size="lg" className="bg-gradient-gold font-body text-accent-foreground hover:opacity-90">
+              <Button size="lg" className="bg-gradient-royal font-body text-accent-foreground hover:opacity-90">
                 Learn More <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </a>

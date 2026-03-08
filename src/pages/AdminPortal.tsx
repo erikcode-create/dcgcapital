@@ -137,6 +137,8 @@ const AdminPortal = () => {
       setDealNotes(enrichedNotes);
     }
 
+    if (assignmentsRes.data) setDealAssignments(assignmentsRes.data);
+
     setLoading(false);
   }, []);
 

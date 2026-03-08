@@ -168,7 +168,7 @@ const Index = () => {
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-3">
             {[
-              { name: "James Fitzpatrick", title: "Managing Partner", bio: "25+ years in private equity and investment banking. Previously led middle-market transactions at a top-tier PE firm." },
+              { name: "James Fitzpatrick", title: "Managing Partner", bio: "25+ years in investing and investment banking. Previously led middle-market transactions at a top-tier investment firm." },
               { name: "Sarah Mitchell", title: "Partner", bio: "Former management consultant and operating executive with deep expertise in industrial and business services sectors." },
               { name: "David Chen", title: "Principal", bio: "Experienced investor with a background in healthcare services and technology-enabled business models." },
             ].map((member, i) => (

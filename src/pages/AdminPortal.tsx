@@ -594,15 +594,16 @@ const AdminPortal = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="font-body">Company</TableHead>
-                    <TableHead className="font-body">Sector</TableHead>
-                    <TableHead className="font-body">Stage</TableHead>
-                    <TableHead className="font-body">Type</TableHead>
-                    <TableHead className="font-body text-right">EV</TableHead>
-                    <TableHead className="font-body text-right">EBITDA</TableHead>
-                    <TableHead className="font-body text-right">Investment</TableHead>
-                    <TableHead className="font-body">Target</TableHead>
-                    <TableHead className="font-body">Date</TableHead>
-                    <TableHead className="font-body"></TableHead>
+                     <TableHead className="font-body">Sector</TableHead>
+                     <TableHead className="font-body">Stage</TableHead>
+                     <TableHead className="font-body">Type</TableHead>
+                     <TableHead className="font-body text-right">EV</TableHead>
+                     <TableHead className="font-body text-right">EBITDA</TableHead>
+                     <TableHead className="font-body text-right">Investment</TableHead>
+                     <TableHead className="font-body">Target</TableHead>
+                     <TableHead className="font-body">Deck</TableHead>
+                     <TableHead className="font-body">Date</TableHead>
+                     <TableHead className="font-body"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

@@ -98,7 +98,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
             <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-accent">About Us</p>
-            <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">A Partnership Built on <span className="text-gradient-gold font-medium">Integrity</span></h2>
+            <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">A Partnership Built on <span className="text-gradient-royal font-medium">Integrity</span></h2>
             <p className="font-body mt-8 text-lg leading-relaxed text-muted-foreground">
               Founded with a commitment to disciplined investing and operational excellence, Fitzpatrick Capital Partners
               seeks to create lasting value for our investors and portfolio companies. We bring decades of combined experience

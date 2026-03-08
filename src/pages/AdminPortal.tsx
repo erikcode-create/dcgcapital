@@ -843,6 +843,64 @@ const AdminPortal = () => {
 
               <Separator />
 
+              {/* Assign to Investor */}
+              <div>
+                <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Assigned Investors</p>
+                {(() => {
+                  const assigned = dealAssignments.filter(a => a.deal_id === detailDeal.id);
+                  const assignedInvestorIds = assigned.map(a => a.investor_id);
+                  const assignedInvestors = investors.filter(inv => assignedInvestorIds.includes(inv.id));
+                  const unassigned = investors.filter(inv => !assignedInvestorIds.includes(inv.id));
+                  return (
+                    <>
+                      {assignedInvestors.length > 0 ? (
+                        <div className="space-y-1 mb-3">
+                          {assignedInvestors.map(inv => (
+                            <div key={inv.id} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
+                              <div className="flex items-center gap-2">
+                                <User className="h-3 w-3 text-muted-foreground" />
+                                <span className="font-body text-sm text-card-foreground">{inv.full_name || inv.email}</span>
+                                {inv.company && <span className="font-body text-xs text-muted-foreground">· {inv.company}</span>}
+                              </div>
+                              <Badge variant="outline" className="font-body text-[10px] text-accent border-accent/20">Assigned</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="font-body text-xs text-muted-foreground mb-3">No investors assigned yet.</p>
+                      )}
+                      {unassigned.length > 0 && (
+                        <div className="flex gap-2">
+                          <Select value={detailAssignInvestorId} onValueChange={setDetailAssignInvestorId}>
+                            <SelectTrigger className="flex-1 h-8 text-sm"><SelectValue placeholder="Select investor..." /></SelectTrigger>
+                            <SelectContent>{unassigned.map(inv => <SelectItem key={inv.id} value={inv.id}>{inv.full_name || inv.email}</SelectItem>)}</SelectContent>
+                          </Select>
+                          <Button size="sm" variant="outline" className="h-8" onClick={async () => {
+                            if (!detailAssignInvestorId) return;
+                            const { error } = await supabase.from("deal_assignments").insert({
+                              deal_id: detailDeal.id,
+                              investor_id: detailAssignInvestorId,
+                            });
+                            if (error) {
+                              if (error.code === "23505") toast({ title: "Already assigned" });
+                              else toast({ title: "Error", description: error.message, variant: "destructive" });
+                            } else {
+                              toast({ title: "Investor assigned" });
+                              setDetailAssignInvestorId("");
+                              fetchAll();
+                            }
+                          }}>
+                            <Plus className="h-3 w-3 mr-1" />Assign
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+
+              <Separator />
+
               {/* Financials */}
               <div>
                 <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Financials</p>

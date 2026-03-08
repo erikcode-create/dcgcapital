@@ -138,7 +138,7 @@ const Index = () => {
             ].map((item, i) => (
               <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i + 1}
                 className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/5 p-8 backdrop-blur-sm">
-                <item.icon className="h-8 w-8 text-gold" />
+                <item.icon className="h-8 w-8 text-maroon" />
                 <h3 className="font-display mt-6 text-xl font-medium text-primary-foreground">{item.title}</h3>
                 <p className="font-body mt-3 text-sm text-primary-foreground/50">{item.desc}</p>
               </motion.div>

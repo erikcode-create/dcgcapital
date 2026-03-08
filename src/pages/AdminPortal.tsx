@@ -19,6 +19,7 @@ import {
   Building2, DollarSign, TrendingUp, Eye, Edit, ChevronRight, ArrowRight,
   Briefcase, MapPin, Phone, Mail, FileText, Clock, User, Upload, Loader2, Download
 } from "lucide-react";
+import NdaManager from "@/components/NdaManager";
 import { format } from "date-fns";
 
 const PIPELINE_STAGES = [

@@ -500,7 +500,7 @@ const AdminPortal = () => {
               </Dialog>
               <Dialog open={dealDialogOpen} onOpenChange={setDealDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="bg-gradient-gold text-accent-foreground"><Plus className="mr-2 h-4 w-4" />New Deal</Button>
+                  <Button size="sm" className="bg-gradient-royal text-accent-foreground"><Plus className="mr-2 h-4 w-4" />New Deal</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                   <DialogHeader><DialogTitle className="font-display text-2xl">Create New Deal</DialogTitle></DialogHeader>

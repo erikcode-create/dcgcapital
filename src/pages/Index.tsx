@@ -61,7 +61,7 @@ const Index = () => {
         </div>
         <div className="container relative z-10 mx-auto px-6 text-center">
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
-            <p className="font-body mb-6 text-sm uppercase tracking-[0.3em] text-royal-light">Private Equity</p>
+            <p className="font-body mb-6 text-sm uppercase tracking-[0.3em] text-royal-light">Capital Partners</p>
           </motion.div>
           <motion.h1
             initial="hidden" animate="visible" variants={fadeUp} custom={1}
@@ -74,7 +74,7 @@ const Index = () => {
             initial="hidden" animate="visible" variants={fadeUp} custom={2}
             className="font-body mx-auto mt-8 max-w-2xl text-lg text-primary-foreground/60 md:text-xl"
           >
-            Fitzpatrick Capital Partners is a private equity firm focused on acquiring and growing
+            Fitzpatrick Capital Partners is an investment firm focused on acquiring and growing
             exceptional middle-market businesses across North America.
           </motion.p>
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3} className="mt-12 flex items-center justify-center gap-4">
@@ -102,7 +102,7 @@ const Index = () => {
             <p className="font-body mt-8 text-lg leading-relaxed text-muted-foreground">
               Founded with a commitment to disciplined investing and operational excellence, Fitzpatrick Capital Partners
               seeks to create lasting value for our investors and portfolio companies. We bring decades of combined experience
-              in private equity, operations, and strategic growth to every investment we make.
+              in investing, operations, and strategic growth to every opportunity we pursue.
             </p>
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-3">
@@ -168,7 +168,7 @@ const Index = () => {
           </motion.div>
           <div className="mt-20 grid gap-8 md:grid-cols-3">
             {[
-              { name: "James Fitzpatrick", title: "Managing Partner", bio: "25+ years in private equity and investment banking. Previously led middle-market transactions at a top-tier PE firm." },
+              { name: "James Fitzpatrick", title: "Managing Partner", bio: "25+ years in investing and investment banking. Previously led middle-market transactions at a top-tier investment firm." },
               { name: "Sarah Mitchell", title: "Partner", bio: "Former management consultant and operating executive with deep expertise in industrial and business services sectors." },
               { name: "David Chen", title: "Principal", bio: "Experienced investor with a background in healthcare services and technology-enabled business models." },
             ].map((member, i) => (

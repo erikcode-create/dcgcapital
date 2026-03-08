@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import NdaManager from "@/components/NdaManager";
 import EmailInbox from "@/components/EmailInbox";
+import DataRoomSection from "@/components/DataRoomSection";
 import { format } from "date-fns";
 
 const PIPELINE_STAGES = [
@@ -74,6 +75,8 @@ const AdminPortal = () => {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [dealAssignments, setDealAssignments] = useState<any[]>([]);
   const [detailAssignInvestorId, setDetailAssignInvestorId] = useState("");
+  const [dealDocuments, setDealDocuments] = useState<any[]>([]);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
   const navigate = useNavigate();
   const [newDeal, setNewDeal] = useState({
     name: "", description: "", sector: "", target_return: "", status: "active",
@@ -146,6 +149,47 @@ const AdminPortal = () => {
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const fetchDealDocuments = useCallback(async (dealId?: string) => {
+    const query = supabase.from("deal_documents").select("*").order("created_at", { ascending: false });
+    if (dealId) query.eq("deal_id", dealId);
+    const { data } = await query;
+    if (data) setDealDocuments(data);
+  }, []);
+
+  useEffect(() => {
+    if (detailDeal?.id) fetchDealDocuments(detailDeal.id);
+  }, [detailDeal?.id, fetchDealDocuments]);
+
+  const handleDocUpload = async (dealId: string, file: File, docType: string) => {
+    setUploadingDoc(true);
+    try {
+      const filePath = `${dealId}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("pitch-decks")
+        .upload(filePath, file);
+      if (uploadError) throw uploadError;
+
+      const { error: insertError } = await supabase.from("deal_documents").insert({
+        deal_id: dealId,
+        file_name: file.name,
+        file_path: filePath,
+        file_size: file.size,
+        content_type: file.type || "application/octet-stream",
+        document_type: docType,
+        uploaded_by: user?.id,
+        source: "manual",
+      });
+      if (insertError) throw insertError;
+
+      toast({ title: "Document uploaded", description: file.name });
+      fetchDealDocuments(dealId);
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
 
   const handleCreateDeal = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -835,24 +879,16 @@ const AdminPortal = () => {
                 </div>
               </div>
 
-              {/* Pitch Deck Download */}
-              {detailDeal.pitch_deck_path && (
-                <>
-                  <Separator />
-                  <div>
-                    <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Pitch Deck</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => handleDownloadDeck(detailDeal.pitch_deck_path, detailDeal.name)}
-                    >
-                      <Download className="h-4 w-4" />
-                      Download Pitch Deck
-                    </Button>
-                  </div>
-                </>
-              )}
+              {/* Data Room */}
+              <Separator />
+              <DataRoomSection
+                dealId={detailDeal.id}
+                dealName={detailDeal.name}
+                documents={dealDocuments.filter(d => d.deal_id === detailDeal.id)}
+                onUpload={handleDocUpload}
+                onRefresh={fetchDealDocuments}
+                uploading={uploadingDoc}
+              />
 
               <Separator />
 

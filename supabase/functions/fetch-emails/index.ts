@@ -249,7 +249,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ========== AUTO-CATEGORIZE NEW EMAILS ==========
+    // ========== AUTO-CATEGORIZE UNCATEGORIZED EMAILS ==========
     // Build conversation_id -> category map from already-categorized emails
     const { data: categorizedEmails } = await supabase
       .from("emails")
@@ -266,49 +266,62 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Get the new inbox emails that need categorization
-    if (newInboxEmailIds.length > 0) {
-      const { data: newEmails } = await supabase
-        .from("emails")
-        .select("id, subject, body_preview, conversation_id, category")
-        .in("id", newInboxEmailIds);
+    // Get ALL uncategorized inbox emails (not just new ones)
+    const { data: uncategorizedEmails } = await supabase
+      .from("emails")
+      .select("id, subject, body_preview, conversation_id, category")
+      .eq("folder", "inbox")
+      .is("category", null);
 
-      if (newEmails) {
-        for (const email of newEmails) {
-          if (email.category) continue; // already categorized
-
-          let category: string;
-          // If conversation already has a category, inherit it
-          if (email.conversation_id && convCategoryMap[email.conversation_id]) {
-            category = convCategoryMap[email.conversation_id];
-          } else {
-            // Use AI to classify
-            category = await classifyEmailWithAI(email.subject || "", email.body_preview || "");
-            // Store in map for other emails in same conversation
-            if (email.conversation_id) {
-              convCategoryMap[email.conversation_id] = category;
-            }
+    if (uncategorizedEmails) {
+      for (const email of uncategorizedEmails) {
+        let category: string;
+        if (email.conversation_id && convCategoryMap[email.conversation_id]) {
+          category = convCategoryMap[email.conversation_id];
+        } else {
+          category = await classifyEmailWithAI(email.subject || "", email.body_preview || "");
+          if (email.conversation_id) {
+            convCategoryMap[email.conversation_id] = category;
           }
-
-          // Update the email category
-          await supabase
-            .from("emails")
-            .update({ category })
-            .eq("id", email.id);
         }
+        await supabase.from("emails").update({ category }).eq("id", email.id);
       }
     }
 
     // ========== AUTO-LINK & AUTO-CONVERT ==========
-    // First, auto-link emails to existing deals by conversation_id
+    // Build conversation_id -> deal_id map from existing deals
     const { data: dealsWithEmails } = await supabase
       .from("deals")
       .select("id, source_email_id")
       .not("source_email_id", "is", null);
 
-    const convDealMap: Record<string, string> = {}; // conversation_id -> deal_id
+    const convDealMap: Record<string, string> = {};
 
     if (dealsWithEmails && dealsWithEmails.length > 0) {
+      // Also build map from deal_emails table (catches all linked conversations)
+      const { data: allDealEmailLinks } = await supabase
+        .from("deal_emails")
+        .select("deal_id, email_id");
+
+      if (allDealEmailLinks && allDealEmailLinks.length > 0) {
+        const linkedEmailIds = allDealEmailLinks.map(l => l.email_id);
+        const { data: linkedEmails } = await supabase
+          .from("emails")
+          .select("id, conversation_id")
+          .in("id", linkedEmailIds)
+          .not("conversation_id", "is", null);
+
+        if (linkedEmails) {
+          for (const le of linkedEmails) {
+            const link = allDealEmailLinks.find(l => l.email_id === le.id);
+            if (link && le.conversation_id) {
+              convDealMap[le.conversation_id] = link.deal_id;
+            }
+          }
+        }
+      }
+
+      // Also from source_email_id
       const sourceEmailIds = dealsWithEmails.map(d => d.source_email_id).filter(Boolean);
       const { data: sourceEmails } = await supabase
         .from("emails")
@@ -323,85 +336,79 @@ Deno.serve(async (req) => {
             convDealMap[se.conversation_id] = deal.id;
           }
         }
+      }
 
-        const convIds = Object.keys(convDealMap);
-        if (convIds.length > 0) {
-          const { data: matchingEmails } = await supabase
-            .from("emails")
-            .select("id, conversation_id")
-            .in("conversation_id", convIds);
+      // Auto-link all emails whose conversation_id maps to a deal
+      const convIds = Object.keys(convDealMap);
+      if (convIds.length > 0) {
+        const { data: matchingEmails } = await supabase
+          .from("emails")
+          .select("id, conversation_id")
+          .in("conversation_id", convIds);
 
-          if (matchingEmails) {
-            const linkInserts = matchingEmails
-              .filter(e => e.conversation_id && convDealMap[e.conversation_id])
-              .map(e => ({
-                deal_id: convDealMap[e.conversation_id!],
-                email_id: e.id,
-                linked_by: "auto",
-              }));
+        if (matchingEmails) {
+          const linkInserts = matchingEmails
+            .filter(e => e.conversation_id && convDealMap[e.conversation_id])
+            .map(e => ({
+              deal_id: convDealMap[e.conversation_id!],
+              email_id: e.id,
+              linked_by: "auto",
+            }));
 
-            if (linkInserts.length > 0) {
-              await supabase
-                .from("deal_emails")
-                .upsert(linkInserts, { onConflict: "deal_id,email_id" });
-            }
+          if (linkInserts.length > 0) {
+            await supabase
+              .from("deal_emails")
+              .upsert(linkInserts, { onConflict: "deal_id,email_id" });
           }
         }
       }
     }
 
-    // Now auto-convert new inbox emails that are NOT yet linked to any deal
-    if (newInboxEmailIds.length > 0) {
-      // Get which of the new emails are already linked
-      const { data: alreadyLinked } = await supabase
+    // Now auto-convert ALL unlinked inbox emails (not just new ones)
+    const { data: allUnlinkedEmails } = await supabase
+      .from("emails")
+      .select("id, conversation_id, category, subject")
+      .eq("folder", "inbox");
+
+    if (allUnlinkedEmails) {
+      const { data: allLinked } = await supabase
         .from("deal_emails")
-        .select("email_id")
-        .in("email_id", newInboxEmailIds);
+        .select("email_id");
 
-      const linkedSet = new Set((alreadyLinked || []).map(d => d.email_id));
+      const linkedSet = new Set((allLinked || []).map(d => d.email_id));
 
-      // Also skip if conversation_id already maps to a deal
-      const { data: newEmailsFull } = await supabase
-        .from("emails")
-        .select("id, conversation_id, category, subject, from_name, from_address")
-        .in("id", newInboxEmailIds);
+      for (const email of allUnlinkedEmails) {
+        if (linkedSet.has(email.id)) continue;
+        if (email.conversation_id && convDealMap[email.conversation_id]) continue;
 
-      if (newEmailsFull) {
-        for (const email of newEmailsFull) {
-          // Skip if already linked to a deal
-          if (linkedSet.has(email.id)) continue;
-          // Skip if conversation already has a deal
-          if (email.conversation_id && convDealMap[email.conversation_id]) continue;
+        try {
+          const convertUrl = `${supabaseUrl}/functions/v1/convert-email-to-deal`;
+          const convertRes = await fetch(convertUrl, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+              apikey: Deno.env.get("SUPABASE_ANON_KEY")!,
+            },
+            body: JSON.stringify({
+              email_id: email.id,
+              category: email.category || "equity",
+            }),
+          });
 
-          // Auto-convert: call convert-email-to-deal function
-          try {
-            const convertUrl = `${supabaseUrl}/functions/v1/convert-email-to-deal`;
-            const convertRes = await fetch(convertUrl, {
-              method: "POST",
-              headers: {
-                Authorization: authHeader,
-                "Content-Type": "application/json",
-                apikey: Deno.env.get("SUPABASE_ANON_KEY")!,
-              },
-              body: JSON.stringify({
-                email_id: email.id,
-                category: email.category || "equity",
-              }),
-            });
-
-            if (convertRes.ok) {
-              const convertData = await convertRes.json();
-              console.log(`Auto-converted email "${email.subject}" to deal: ${convertData.deal?.name || "unknown"}`);
-              // Track the new deal's conversation mapping
-              if (email.conversation_id && convertData.deal?.id) {
-                convDealMap[email.conversation_id] = convertData.deal.id;
-              }
-            } else {
-              console.error(`Auto-convert failed for email ${email.id}:`, await convertRes.text());
+          if (convertRes.ok) {
+            const convertData = await convertRes.json();
+            console.log(`Auto-converted email "${email.subject}" to deal: ${convertData.deal?.name || "unknown"}`);
+            if (email.conversation_id && convertData.deal?.id) {
+              convDealMap[email.conversation_id] = convertData.deal.id;
             }
-          } catch (err) {
-            console.error(`Auto-convert error for email ${email.id}:`, err);
+            // Add to linked set so subsequent emails in same batch don't re-convert
+            linkedSet.add(email.id);
+          } else {
+            console.error(`Auto-convert failed for email ${email.id}:`, await convertRes.text());
           }
+        } catch (err) {
+          console.error(`Auto-convert error for email ${email.id}:`, err);
         }
       }
     }

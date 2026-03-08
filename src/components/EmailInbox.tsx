@@ -48,11 +48,9 @@ interface Attachment {
 }
 
 const EMAIL_CATEGORIES = [
+  { key: "equity", label: "Equity", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
+  { key: "debt", label: "Debt", color: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
   { key: "revenue_seeking", label: "Revenue Seeking", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
-  { key: "deal_flow", label: "Deal Flow", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-  { key: "investor_relations", label: "Investor Relations", color: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
-  { key: "general", label: "General", color: "bg-gray-500/10 text-gray-600 border-gray-500/20" },
-  { key: "spam", label: "Spam / Irrelevant", color: "bg-red-500/10 text-red-600 border-red-500/20" },
 ];
 
 const formatFileSize = (bytes: number) => {
@@ -420,7 +418,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleConvertToDeal(selectedEmail, selectedEmail.category || "deal_flow")}
+                onClick={() => handleConvertToDeal(selectedEmail, selectedEmail.category || "equity")}
                 disabled={converting}
                 className="text-xs"
               >

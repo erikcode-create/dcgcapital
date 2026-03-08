@@ -14,8 +14,12 @@ import { format } from "date-fns";
 import {
   Mail, RefreshCw, Send, Reply, Inbox, ArrowUpRight,
   Loader2, Search, Paperclip, ChevronLeft, Plus,
-  Tag, Briefcase, Download, FileText, Image, File, FileSpreadsheet
+  Tag, Briefcase, Download, FileText, Image, File, FileSpreadsheet, Trash2
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Email {
   id: string;
@@ -87,6 +91,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchEmails = useCallback(async () => {
@@ -283,6 +288,24 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     }
   };
 
+  const handleDeleteEmail = async (emailId: string) => {
+    setDeletingId(emailId);
+    try {
+      const { error } = await supabase.from("emails").delete().eq("id", emailId);
+      if (error) throw error;
+      setEmails(prev => prev.filter(e => e.id !== emailId));
+      if (selectedEmail?.id === emailId) {
+        setSelectedEmail(null);
+        setAttachments([]);
+      }
+      toast({ title: "Email deleted", description: "Email removed successfully." });
+    } catch (err: any) {
+      toast({ title: "Delete failed", description: err.message, variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const filteredEmails = emails.filter((e) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -314,6 +337,23 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
             <ChevronLeft className="mr-1 h-4 w-4" /> Back
           </Button>
           <div className="ml-auto flex gap-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                  <Trash2 className="mr-1 h-4 w-4" /> Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this email?</AlertDialogTitle>
+                  <AlertDialogDescription>This will permanently remove this email from the inbox. This action cannot be undone.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => handleDeleteEmail(selectedEmail.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button variant="outline" size="sm" onClick={() => setReplyOpen(true)}>
               <Reply className="mr-1 h-4 w-4" /> Reply
             </Button>
@@ -579,7 +619,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
               <div
                 key={email.id}
                 onClick={() => setSelectedEmail(email)}
-                className={`flex items-start gap-4 px-5 py-4 cursor-pointer transition-colors hover:bg-muted/50 ${
+                className={`group flex items-start gap-4 px-5 py-4 cursor-pointer transition-colors hover:bg-muted/50 ${
                   !email.is_read && email.folder === "inbox" ? "bg-accent/5" : ""
                 }`}
               >
@@ -606,6 +646,18 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
                     {email.body_preview}
                   </p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex-shrink-0 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteEmail(email.id);
+                  }}
+                  disabled={deletingId === email.id}
+                >
+                  {deletingId === email.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                </Button>
               </div>
             ))}
           </div>

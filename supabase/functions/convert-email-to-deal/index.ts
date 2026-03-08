@@ -186,14 +186,10 @@ Extract all deal information you can find from the email and attachments.`,
     ];
 
     for (const file of uploadedFiles) {
-      const supportedTypes = [
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/vnd.ms-powerpoint",
-        "image/png", "image/jpeg", "image/gif",
-      ];
-      if (supportedTypes.some(t => file.mimeType.includes(t)) || file.mimeType.startsWith("image/")) {
+      // Only PDFs and images can be sent inline to Gemini — .docx, .pptx etc. cause errors
+      const isImage = file.mimeType.startsWith("image/");
+      const isPdf = file.mimeType === "application/pdf";
+      if (isImage || isPdf) {
         userContent.push({
           type: "image_url",
           image_url: { url: `data:${file.mimeType};base64,${file.base64}` },

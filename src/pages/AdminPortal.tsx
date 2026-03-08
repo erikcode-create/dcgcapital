@@ -617,6 +617,15 @@ const AdminPortal = () => {
                       <TableCell className="font-body text-right text-sm">{formatCurrency(deal.ebitda)}</TableCell>
                       <TableCell className="font-body text-right text-sm text-accent">{formatCurrency(deal.investment_amount)}</TableCell>
                       <TableCell className="font-body text-sm">{deal.target_return || "—"}</TableCell>
+                      <TableCell>
+                        {deal.pitch_deck_path ? (
+                          <Button variant="ghost" size="sm" className="text-accent" onClick={(e) => { e.stopPropagation(); handleDownloadDeck(deal.pitch_deck_path, deal.name); }}>
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <span className="font-body text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="font-body text-xs text-muted-foreground">{deal.created_at ? format(new Date(deal.created_at), "MMM d") : ""}</TableCell>
                       <TableCell>
                         <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteDeal(deal.id); }} className="text-destructive hover:text-destructive">

@@ -20,6 +20,7 @@ import {
   Briefcase, MapPin, Phone, Mail, FileText, Clock, User, Upload, Loader2, Download
 } from "lucide-react";
 import NdaManager from "@/components/NdaManager";
+import EmailInbox from "@/components/EmailInbox";
 import { format } from "date-fns";
 
 const PIPELINE_STAGES = [

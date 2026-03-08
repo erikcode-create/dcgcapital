@@ -215,7 +215,7 @@ const Index = () => {
             <div className="grid gap-16 md:grid-cols-2">
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
                 <p className="font-body mb-4 text-sm uppercase tracking-[0.2em] text-accent">Contact</p>
-                <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">Get in <span className="text-gradient-gold font-medium">Touch</span></h2>
+                <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">Get in <span className="text-gradient-royal font-medium">Touch</span></h2>
                 <p className="font-body mt-6 text-muted-foreground">
                   Interested in learning more about Fitzpatrick Capital Partners? We welcome inquiries
                   from prospective investors, management teams, and intermediaries.

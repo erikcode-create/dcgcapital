@@ -91,6 +91,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchEmails = useCallback(async () => {

@@ -1,11 +1,16 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowRight, Shield, TrendingUp, Users, Building2, BarChart3, Briefcase, Mail, Phone, MapPin } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+
+const isPreviewMode = () => {
+  const hostname = window.location.hostname;
+  return hostname.includes("preview") && hostname.endsWith(".lovable.app");
+};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },

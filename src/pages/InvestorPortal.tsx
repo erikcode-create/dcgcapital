@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, TrendingUp, MessageSquare, Heart, User, ArrowLeft, Eye } from "lucide-react";
+import { LogOut, TrendingUp, MessageSquare, Heart, User, ArrowLeft, Eye, Download } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 const InvestorPortal = () => {

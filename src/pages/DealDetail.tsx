@@ -79,6 +79,9 @@ const DealDetail = () => {
   const [selectedEmail, setSelectedEmail] = useState<any>(null);
   const [aiSuggestions, setAiSuggestions] = useState<any>(null);
   const [analyzingOverview, setAnalyzingOverview] = useState(false);
+  const [allDeals, setAllDeals] = useState<any[]>([]);
+  const [reassignEmailId, setReassignEmailId] = useState<string | null>(null);
+  const [reassignDealId, setReassignDealId] = useState("");
 
   const fetchDeal = useCallback(async () => {
     if (!id) return;

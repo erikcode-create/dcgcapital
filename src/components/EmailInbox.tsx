@@ -13,8 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import {
   Mail, RefreshCw, Send, Reply, Inbox, ArrowUpRight,
-  Loader2, Search, Clock, Paperclip, Star, ChevronLeft, Plus,
-  Eye, Tag, ArrowRightToLine, Briefcase
+  Loader2, Search, Paperclip, ChevronLeft, Plus,
+  Tag, Briefcase, Download, FileText, Image, File, FileSpreadsheet
 } from "lucide-react";
 
 interface Email {
@@ -40,6 +40,13 @@ interface Email {
   category: string | null;
 }
 
+interface Attachment {
+  id: string;
+  name: string;
+  contentType: string;
+  size: number;
+}
+
 const EMAIL_CATEGORIES = [
   { key: "revenue_seeking", label: "Revenue Seeking", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
   { key: "deal_flow", label: "Deal Flow", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
@@ -47,6 +54,20 @@ const EMAIL_CATEGORIES = [
   { key: "general", label: "General", color: "bg-gray-500/10 text-gray-600 border-gray-500/20" },
   { key: "spam", label: "Spam / Irrelevant", color: "bg-red-500/10 text-red-600 border-red-500/20" },
 ];
+
+const formatFileSize = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const getFileIcon = (contentType: string, name: string) => {
+  if (contentType.startsWith("image/")) return Image;
+  if (contentType.includes("pdf")) return FileText;
+  if (contentType.includes("spreadsheet") || contentType.includes("excel") || name.endsWith(".xlsx") || name.endsWith(".csv")) return FileSpreadsheet;
+  if (contentType.includes("presentation") || contentType.includes("powerpoint") || name.endsWith(".pptx")) return FileText;
+  return File;
+};
 
 interface EmailInboxProps {
   onDealCreated?: () => void;
@@ -65,6 +86,9 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
   const [converting, setConverting] = useState(false);
   const [compose, setCompose] = useState({ to: "", cc: "", subject: "", body: "" });
   const [replyBody, setReplyBody] = useState("");
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [loadingAttachments, setLoadingAttachments] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchEmails = useCallback(async () => {
@@ -88,6 +112,67 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     fetchEmails();
   }, [fetchEmails]);
 
+  // Fetch attachments when an email with attachments is selected
+  useEffect(() => {
+    if (!selectedEmail?.has_attachments || !selectedEmail?.microsoft_id) {
+      setAttachments([]);
+      return;
+    }
+
+    const fetchAttachments = async () => {
+      setLoadingAttachments(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-email-attachments?microsoft_id=${encodeURIComponent(selectedEmail.microsoft_id)}`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const data = await res.json();
+        if (data.success && data.attachments) {
+          setAttachments(data.attachments);
+        }
+      } catch (err) {
+        console.error("Failed to fetch attachments:", err);
+      } finally {
+        setLoadingAttachments(false);
+      }
+    };
+
+    fetchAttachments();
+  }, [selectedEmail?.id]);
+
+  const handleDownloadAttachment = async (att: Attachment) => {
+    if (!selectedEmail) return;
+    setDownloadingId(att.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-email-attachments?microsoft_id=${encodeURIComponent(selectedEmail.microsoft_id)}&download_id=${encodeURIComponent(att.id)}`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (!res.ok) throw new Error("Download failed");
+
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = att.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err: any) {
+      toast({ title: "Download failed", description: err.message, variant: "destructive" });
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   const syncEmails = async () => {
     setSyncing(true);
     try {
@@ -107,11 +192,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
       fetchEmails();
     } catch (err: any) {
       console.error("Sync error:", err);
-      toast({
-        title: "Sync failed",
-        description: err.message || "Failed to sync emails",
-        variant: "destructive",
-      });
+      toast({ title: "Sync failed", description: err.message || "Failed to sync emails", variant: "destructive" });
     } finally {
       setSyncing(false);
     }
@@ -124,18 +205,8 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
       if (!session) throw new Error("Not authenticated");
 
       const payload = replyToId
-        ? {
-            to: selectedEmail?.from_address,
-            subject: `Re: ${selectedEmail?.subject}`,
-            body: replyBody,
-            replyToId: selectedEmail?.microsoft_id,
-          }
-        : {
-            to: compose.to.split(",").map((s) => s.trim()).filter(Boolean),
-            cc: compose.cc ? compose.cc.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
-            subject: compose.subject,
-            body: compose.body,
-          };
+        ? { to: selectedEmail?.from_address, subject: `Re: ${selectedEmail?.subject}`, body: replyBody, replyToId: selectedEmail?.microsoft_id }
+        : { to: compose.to.split(",").map((s) => s.trim()).filter(Boolean), cc: compose.cc ? compose.cc.split(",").map((s) => s.trim()).filter(Boolean) : undefined, subject: compose.subject, body: compose.body };
 
       const { data, error } = await supabase.functions.invoke("send-email", {
         headers: { Authorization: `Bearer ${session.access_token}` },
@@ -152,31 +223,19 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
       setReplyBody("");
       fetchEmails();
     } catch (err: any) {
-      console.error("Send error:", err);
-      toast({
-        title: "Send failed",
-        description: err.message || "Failed to send email",
-        variant: "destructive",
-      });
+      toast({ title: "Send failed", description: err.message || "Failed to send email", variant: "destructive" });
     } finally {
       setSending(false);
     }
   };
 
   const handleCategorize = async (emailId: string, category: string) => {
-    const { error } = await supabase
-      .from("emails")
-      .update({ category })
-      .eq("id", emailId);
-
+    const { error } = await supabase.from("emails").update({ category } as any).eq("id", emailId);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      // Update local state
       setEmails(prev => prev.map(e => e.id === emailId ? { ...e, category } : e));
-      if (selectedEmail?.id === emailId) {
-        setSelectedEmail(prev => prev ? { ...prev, category } : null);
-      }
+      if (selectedEmail?.id === emailId) setSelectedEmail(prev => prev ? { ...prev, category } : null);
       toast({ title: "Email categorized", description: `Marked as ${EMAIL_CATEGORIES.find(c => c.key === category)?.label}` });
     }
   };
@@ -200,20 +259,11 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
         description: `"${data.deal?.name}" added to pipeline. ${data.attachments_uploaded || 0} attachment(s) saved.`,
       });
 
-      // Update the email category locally
       setEmails(prev => prev.map(e => e.id === email.id ? { ...e, category } : e));
-      if (selectedEmail?.id === email.id) {
-        setSelectedEmail(prev => prev ? { ...prev, category } : null);
-      }
-
+      if (selectedEmail?.id === email.id) setSelectedEmail(prev => prev ? { ...prev, category } : null);
       onDealCreated?.();
     } catch (err: any) {
-      console.error("Convert error:", err);
-      toast({
-        title: "Conversion failed",
-        description: err.message || "Failed to convert email to deal",
-        variant: "destructive",
-      });
+      toast({ title: "Conversion failed", description: err.message || "Failed to convert email to deal", variant: "destructive" });
     } finally {
       setConverting(false);
     }
@@ -246,7 +296,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setSelectedEmail(null)}>
+          <Button variant="ghost" size="sm" onClick={() => { setSelectedEmail(null); setAttachments([]); }}>
             <ChevronLeft className="mr-1 h-4 w-4" /> Back
           </Button>
           <div className="ml-auto flex gap-2">
@@ -288,8 +338,60 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
             </div>
             <Separator />
 
+            {/* Attachments Section */}
+            {selectedEmail.has_attachments && (
+              <>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Paperclip className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium font-body">Attachments</span>
+                    {loadingAttachments && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                  </div>
+                  {attachments.length > 0 ? (
+                    <div className="grid gap-2">
+                      {attachments.map((att) => {
+                        const IconComponent = getFileIcon(att.contentType, att.name);
+                        const isDownloading = downloadingId === att.id;
+                        return (
+                          <div
+                            key={att.id}
+                            className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3 hover:bg-muted/60 transition-colors"
+                          >
+                            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-accent/10">
+                              <IconComponent className="h-5 w-5 text-accent" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium font-body truncate">{att.name}</p>
+                              <p className="text-xs text-muted-foreground font-body">{formatFileSize(att.size)}</p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDownloadAttachment(att)}
+                              disabled={isDownloading}
+                              className="flex-shrink-0"
+                            >
+                              {isDownloading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Download className="h-4 w-4" />
+                              )}
+                              <span className="ml-1.5 text-xs">Download</span>
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : !loadingAttachments ? (
+                    <p className="text-xs text-muted-foreground font-body">No downloadable attachments found.</p>
+                  ) : null}
+                </div>
+                <Separator />
+              </>
+            )}
+
             {/* Categorize & Convert Actions */}
-            <div className="flex flex-wrap items-center gap-3 py-2 px-1 rounded-lg bg-muted/30 border border-border">
+            <div className="flex flex-wrap items-center gap-3 py-2 px-3 rounded-lg bg-muted/30 border border-border">
               <div className="flex items-center gap-2">
                 <Tag className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xs font-body text-muted-foreground">Categorize:</span>
@@ -315,11 +417,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
                 disabled={converting}
                 className="text-xs"
               >
-                {converting ? (
-                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                ) : (
-                  <Briefcase className="mr-1 h-3 w-3" />
-                )}
+                {converting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Briefcase className="mr-1 h-3 w-3" />}
                 {converting ? "Creating Deal..." : "Convert to Deal"}
               </Button>
             </div>
@@ -419,39 +517,19 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
               <div className="space-y-3">
                 <div>
                   <Label className="text-xs">To (comma-separated)</Label>
-                  <Input
-                    value={compose.to}
-                    onChange={(e) => setCompose({ ...compose, to: e.target.value })}
-                    className="mt-1"
-                    placeholder="email@example.com"
-                  />
+                  <Input value={compose.to} onChange={(e) => setCompose({ ...compose, to: e.target.value })} className="mt-1" placeholder="email@example.com" />
                 </div>
                 <div>
                   <Label className="text-xs">CC (optional, comma-separated)</Label>
-                  <Input
-                    value={compose.cc}
-                    onChange={(e) => setCompose({ ...compose, cc: e.target.value })}
-                    className="mt-1"
-                    placeholder="cc@example.com"
-                  />
+                  <Input value={compose.cc} onChange={(e) => setCompose({ ...compose, cc: e.target.value })} className="mt-1" placeholder="cc@example.com" />
                 </div>
                 <div>
                   <Label className="text-xs">Subject</Label>
-                  <Input
-                    value={compose.subject}
-                    onChange={(e) => setCompose({ ...compose, subject: e.target.value })}
-                    className="mt-1"
-                  />
+                  <Input value={compose.subject} onChange={(e) => setCompose({ ...compose, subject: e.target.value })} className="mt-1" />
                 </div>
                 <div>
                   <Label className="text-xs">Message</Label>
-                  <Textarea
-                    value={compose.body}
-                    onChange={(e) => setCompose({ ...compose, body: e.target.value })}
-                    rows={8}
-                    className="mt-1"
-                    placeholder="Write your message..."
-                  />
+                  <Textarea value={compose.body} onChange={(e) => setCompose({ ...compose, body: e.target.value })} rows={8} className="mt-1" placeholder="Write your message..." />
                 </div>
                 <Button
                   onClick={() => sendEmail()}

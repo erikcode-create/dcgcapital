@@ -60,10 +60,14 @@ const AdminPortal = () => {
   const [detailDeal, setDetailDeal] = useState<any | null>(null);
   const [editingDeal, setEditingDeal] = useState<any | null>(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [createInvestorOpen, setCreateInvestorOpen] = useState(false);
   const [selectedDealId, setSelectedDealId] = useState("");
   const [selectedInvestorId, setSelectedInvestorId] = useState("");
   const [replyContent, setReplyContent] = useState<Record<string, string>>({});
   const [newNoteContent, setNewNoteContent] = useState("");
+  const [newInvestor, setNewInvestor] = useState({ email: "", password: "", full_name: "", company: "", phone: "" });
+  const [creatingInvestor, setCreatingInvestor] = useState(false);
+  const navigate = useNavigate();
   const [newDeal, setNewDeal] = useState({
     name: "", description: "", sector: "", target_return: "", status: "active",
     stage: "sourcing", enterprise_value: "", ebitda: "", revenue: "",

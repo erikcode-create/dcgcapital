@@ -415,7 +415,7 @@ const AdminPortal = () => {
             { label: "Interest", value: interests.length, icon: Heart },
             { label: "Messages", value: allMessages.length, icon: MessageSquare },
           ].map((stat, i) => (
-            <Card key={i} className={`border-border ${stat.accent ? "bg-gradient-gold" : ""}`}>
+            <Card key={i} className={`border-border ${stat.accent ? "bg-gradient-royal" : ""}`}>
               <CardContent className="flex items-center gap-4 p-5">
                 <stat.icon className={`h-7 w-7 ${stat.accent ? "text-accent-foreground" : "text-accent"}`} />
                 <div>

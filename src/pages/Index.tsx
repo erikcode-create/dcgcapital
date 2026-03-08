@@ -61,7 +61,7 @@ const Index = () => {
         </div>
         <div className="container relative z-10 mx-auto px-6 text-center">
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
-            <p className="font-body mb-6 text-sm uppercase tracking-[0.3em] text-gold-light">Private Equity</p>
+            <p className="font-body mb-6 text-sm uppercase tracking-[0.3em] text-maroon-light">Private Equity</p>
           </motion.div>
           <motion.h1
             initial="hidden" animate="visible" variants={fadeUp} custom={1}

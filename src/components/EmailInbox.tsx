@@ -619,7 +619,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
               <div
                 key={email.id}
                 onClick={() => setSelectedEmail(email)}
-                className={`flex items-start gap-4 px-5 py-4 cursor-pointer transition-colors hover:bg-muted/50 ${
+                className={`group flex items-start gap-4 px-5 py-4 cursor-pointer transition-colors hover:bg-muted/50 ${
                   !email.is_read && email.folder === "inbox" ? "bg-accent/5" : ""
                 }`}
               >

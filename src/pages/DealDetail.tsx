@@ -854,9 +854,9 @@ const DealDetail = () => {
               </Card>
 
               {/* Missing Data Card */}
-              <Card className="border-blue-500/20 bg-blue-500/5">
+              <Card className="border-primary/20 bg-primary/5">
                 <CardHeader className="pb-2">
-                  <CardTitle className="font-display text-base flex items-center gap-2 text-blue-700">
+                  <CardTitle className="font-display text-base flex items-center gap-2 text-primary">
                     <Info className="h-4 w-4" />
                     Missing Data
                   </CardTitle>
@@ -866,7 +866,7 @@ const DealDetail = () => {
                     <ul className="space-y-2">
                       {aiSummary.missing_data.map((item: string, i: number) => (
                         <li key={i} className="flex items-start gap-2">
-                          <Info className="h-3.5 w-3.5 text-blue-600 mt-0.5 shrink-0" />
+                          <Info className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
                           <span className="font-body text-sm text-foreground">{item}</span>
                         </li>
                       ))}

@@ -828,9 +828,9 @@ const DealDetail = () => {
               </Card>
 
               {/* AI Concerns Card */}
-              <Card className="border-amber-500/20 bg-amber-500/5">
+              <Card className="border-destructive/20 bg-destructive/5">
                 <CardHeader className="pb-2">
-                  <CardTitle className="font-display text-base flex items-center gap-2 text-amber-700">
+                  <CardTitle className="font-display text-base flex items-center gap-2 text-destructive">
                     <AlertTriangle className="h-4 w-4" />
                     AI Concerns
                   </CardTitle>
@@ -840,7 +840,7 @@ const DealDetail = () => {
                     <ul className="space-y-2">
                       {aiSummary.concerns.map((concern: string, i: number) => (
                         <li key={i} className="flex items-start gap-2">
-                          <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
+                          <AlertTriangle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
                           <span className="font-body text-sm text-foreground">{concern}</span>
                         </li>
                       ))}

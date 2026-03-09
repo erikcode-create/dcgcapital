@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      deal_ai_summaries: {
+        Row: {
+          communications_summary: string | null
+          concerns: Json | null
+          deal_id: string
+          document_count: number | null
+          email_count: number | null
+          generated_at: string
+          id: string
+          missing_data: Json | null
+        }
+        Insert: {
+          communications_summary?: string | null
+          concerns?: Json | null
+          deal_id: string
+          document_count?: number | null
+          email_count?: number | null
+          generated_at?: string
+          id?: string
+          missing_data?: Json | null
+        }
+        Update: {
+          communications_summary?: string | null
+          concerns?: Json | null
+          deal_id?: string
+          document_count?: number | null
+          email_count?: number | null
+          generated_at?: string
+          id?: string
+          missing_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_ai_summaries_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: true
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_assignments: {
         Row: {
           created_at: string
@@ -160,6 +201,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "deal_notes_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string
+          description: string | null
+          due_date: string | null
+          id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_tasks_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
             referencedRelation: "deals"

@@ -162,7 +162,6 @@ const Index = () => {
     { icon: Shield, label: "Defense" },
   ];
 
-  const [expandedSolution, setExpandedSolution] = useState<number | null>(null);
 
   return (
     <div className="min-h-screen bg-background">

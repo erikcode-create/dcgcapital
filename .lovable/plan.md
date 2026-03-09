@@ -1,96 +1,48 @@
 
 
-## Enhanced Deal Overview: AI Intelligence + Task Scheduling
+## Implementation Plan: Complete the Enhanced Deal Overview
 
-### What we're building
+### Status check
+- ✅ `deal_tasks` table — exists with correct schema and RLS
+- ✅ `deal_ai_summaries` table — exists with correct schema and RLS
+- ❌ `supabase/functions/analyze-deal-overview/index.ts` — missing
+- ❌ `supabase/config.toml` — missing function entry
+- ❌ `src/pages/DealDetail.tsx` — missing all 4 new UI sections + data fetching
 
-Four new sections on the Overview tab that give admins an at-a-glance intelligence briefing and task management:
+### 1. Create edge function `supabase/functions/analyze-deal-overview/index.ts`
+- CORS + auth via `getClaims()` + admin check via `has_role` RPC
+- Accepts `{ deal_id }`, loads deal record, linked emails (via `deal_emails` join), document summaries, and notes
+- Calls Lovable AI gateway (`google/gemini-3-flash-preview`) with structured prompt requesting `communications_summary`, `concerns[]`, `missing_data[]`
+- Upserts result into `deal_ai_summaries` with email/document counts
+- Returns the summary data
 
-1. **AI Communications Summary** — Auto-generated summary of all emails and documents linked to the deal
-2. **AI Concerns** — AI-identified risks, red flags, or issues worth investigating
-3. **Missing Data** — AI-identified gaps in the deal profile (missing financials, contacts, documents, etc.)
-4. **Scheduling & Tasks** — Calendar-style task list with due dates and assignees
+### 2. Update `supabase/config.toml`
+- Add `[functions.analyze-deal-overview]` with `verify_jwt = false`
 
-### Database changes
+### 3. Update `src/pages/DealDetail.tsx`
 
-New `deal_tasks` table:
-```sql
-create table public.deal_tasks (
-  id uuid primary key default gen_random_uuid(),
-  deal_id uuid not null,
-  title text not null,
-  description text,
-  due_date date,
-  assigned_to uuid,
-  created_by uuid,
-  status text not null default 'todo', -- todo, in_progress, done
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
+**New state:**
+- `aiSummary` — cached AI briefing from `deal_ai_summaries`
+- `dealTasks` — tasks from `deal_tasks`
+- `refreshingAi` — loading state for AI analysis
+- `newTaskTitle`, `newTaskDate`, `newTaskAssignee` — task creation form
 
-alter table public.deal_tasks enable row level security;
+**New data fetching (inside `fetchRelated`):**
+- Fetch `deal_ai_summaries` for current deal (`.maybeSingle()`)
+- Fetch `deal_tasks` ordered by due date
 
--- RLS: admins full access
-create policy "Admins can manage deal tasks"
-  on public.deal_tasks for all
-  to authenticated
-  using (has_role(auth.uid(), 'admin'))
-  with check (has_role(auth.uid(), 'admin'));
+**New handlers:**
+- `handleRefreshAiAnalysis()` — invokes `analyze-deal-overview`, updates `aiSummary` state
+- `handleAddTask()` — inserts into `deal_tasks`
+- `handleToggleTaskStatus(taskId)` — toggles between `todo`/`done`
+- `handleDeleteTask(taskId)` — deletes from `deal_tasks`
 
--- Investors can view tasks on assigned deals
-create policy "Investors can view tasks on assigned deals"
-  on public.deal_tasks for select
-  to authenticated
-  using (deal_id in (
-    select deal_id from deal_assignments where investor_id = auth.uid()
-  ));
-```
+**New UI sections on Overview tab (below existing cards):**
 
-New `deal_ai_summaries` table to cache AI analysis so it doesn't regenerate on every page load:
-```sql
-create table public.deal_ai_summaries (
-  id uuid primary key default gen_random_uuid(),
-  deal_id uuid not null unique,
-  communications_summary text,
-  concerns jsonb default '[]',
-  missing_data jsonb default '[]',
-  generated_at timestamptz not null default now(),
-  email_count int default 0,
-  document_count int default 0
-);
+1. **AI Communications Summary card** — narrative text, "Refresh Analysis" button, "Last updated" timestamp, email/doc count badge
+2. **AI Concerns card** — bulleted list with amber/warning styling
+3. **Missing Data card** — bulleted list with blue/info styling  
+4. **Scheduling & Tasks card** — Calendar component for date picking + task list with add form (title, date, assignee select from profiles), status toggle, delete
 
-alter table public.deal_ai_summaries enable row level security;
-
-create policy "Admins can manage deal AI summaries"
-  on public.deal_ai_summaries for all
-  to authenticated
-  using (has_role(auth.uid(), 'admin'))
-  with check (has_role(auth.uid(), 'admin'));
-```
-
-### New edge function: `analyze-deal-overview`
-
-Takes a `deal_id`, loads the deal record + all linked emails + all document summaries, sends them to AI (Gemini 3 Flash) with a structured prompt requesting:
-- Communications summary (narrative paragraph)
-- List of concerns (array of strings)
-- List of missing/helpful data (array of strings)
-
-Results are upserted into `deal_ai_summaries`. The function is called:
-- On-demand via a "Refresh AI Analysis" button on the Overview tab
-- The UI shows cached data from `deal_ai_summaries` and indicates when it was last generated
-
-### UI changes to `DealDetail.tsx`
-
-The Overview tab gets reorganized with new sections below the existing cards:
-
-1. **Communications Summary card** — Shows the AI-generated narrative with a "Refresh" button and "Last updated" timestamp
-2. **AI Concerns card** — Bulleted list of concerns with warning styling
-3. **Missing Data card** — Bulleted list of gaps with info styling
-4. **Scheduling card** — Mini calendar (using existing Calendar component) + task list below it, with ability to add tasks (title, due date, assignee from profiles list), mark complete, delete
-
-### Files to create/edit
-- `supabase/functions/analyze-deal-overview/index.ts` — new edge function
-- `supabase/config.toml` — add function config (verify_jwt = false)
-- `src/pages/DealDetail.tsx` — add state, fetch, and UI for all 4 new sections
-- Database migration for `deal_tasks` and `deal_ai_summaries` tables
+**New imports needed:** `Calendar` component, `AlertTriangle`, `Info`, `CalendarDays`, `Plus`, `CheckCircle2` from lucide-react
 

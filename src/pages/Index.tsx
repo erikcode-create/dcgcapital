@@ -73,7 +73,7 @@ const Index = () => {
     contact_phone: "",
     notes: "",
   });
-
+  const [expandedSolution, setExpandedSolution] = useState<number | null>(null);
   const { toast } = useToast();
 
   if (isPreviewMode()) {

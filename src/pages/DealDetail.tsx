@@ -1,3 +1,6 @@
+// ABOUTME: Admin deal detail page with overview, data room, emails, activity, and investors tabs.
+// ABOUTME: Includes AI briefing (summary, concerns, missing data) and task scheduling features.
+
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,14 +15,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft, Trash2, Users, DollarSign, TrendingUp, Edit, Save, X,
   Briefcase, MapPin, Mail, FileText, Clock, User, Loader2, MessageSquare,
-  Building2, Phone, ChevronRight, Upload, Sparkles, Check, X as XIcon
+  Building2, Phone, ChevronRight, Upload, Sparkles, Check, X as XIcon,
+  AlertTriangle, Info, CalendarDays, Plus, CheckCircle2, RefreshCw
 } from "lucide-react";
 import DataRoomSection from "@/components/DataRoomSection";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const PIPELINE_STAGES = [
   { key: "sourcing", label: "Sourcing", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
@@ -83,6 +90,17 @@ const DealDetail = () => {
   const [reassignEmailId, setReassignEmailId] = useState<string | null>(null);
   const [reassignDealId, setReassignDealId] = useState("");
 
+  // AI Briefing state
+  const [aiSummary, setAiSummary] = useState<any>(null);
+  const [refreshingAi, setRefreshingAi] = useState(false);
+
+  // Task scheduling state
+  const [dealTasks, setDealTasks] = useState<any[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDate, setNewTaskDate] = useState<Date | undefined>(undefined);
+  const [newTaskAssignee, setNewTaskAssignee] = useState("");
+  const [addingTask, setAddingTask] = useState(false);
+
   const fetchDeal = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -99,7 +117,7 @@ const DealDetail = () => {
 
   const fetchRelated = useCallback(async () => {
     if (!id) return;
-    const [docsRes, emailsRes, notesRes, assignRes, profilesRes, rolesRes, msgsRes] = await Promise.all([
+    const [docsRes, emailsRes, notesRes, assignRes, profilesRes, rolesRes, msgsRes, aiSummaryRes, tasksRes] = await Promise.all([
       (supabase as any).from("deal_documents").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
       (supabase as any).from("deal_emails").select("*, emails(*)").eq("deal_id", id).order("linked_at", { ascending: false }),
       supabase.from("deal_notes").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
@@ -107,9 +125,13 @@ const DealDetail = () => {
       supabase.from("profiles").select("*"),
       supabase.from("user_roles").select("*"),
       supabase.from("messages").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
+      supabase.from("deal_ai_summaries").select("*").eq("deal_id", id).maybeSingle(),
+      supabase.from("deal_tasks").select("*").eq("deal_id", id).order("due_date", { ascending: true, nullsFirst: false }),
     ]);
     if (docsRes.data) setDealDocuments(docsRes.data);
     if (emailsRes.data) setDealEmails(emailsRes.data);
+    if (aiSummaryRes.data) setAiSummary(aiSummaryRes.data);
+    if (tasksRes.data) setDealTasks(tasksRes.data);
     
     const profiles = profilesRes.data || [];
     const roles = rolesRes.data || [];
@@ -286,7 +308,6 @@ const DealDetail = () => {
       if (analysisError) {
         toast({ title: "Analysis failed", description: analysisError.message, variant: "destructive" });
       } else if (analysisData?.suggested_fields) {
-        // Filter out null/empty suggestions and fields that already have values
         const filtered: Record<string, any> = {};
         for (const [key, value] of Object.entries(analysisData.suggested_fields)) {
           if (value !== null && value !== undefined && value !== "") {
@@ -294,7 +315,6 @@ const DealDetail = () => {
           }
         }
         if (Object.keys(filtered).length > 0) {
-          // Auto-apply all suggestions to the deal
           const { error: updateError } = await supabase.from("deals").update(filtered).eq("id", deal.id);
           if (!updateError) {
             const updatedDeal = { ...deal, ...filtered };
@@ -302,7 +322,6 @@ const DealDetail = () => {
             setEditData(updatedDeal);
             toast({ title: "AI Auto-Populated Fields", description: `Updated ${Object.keys(filtered).length} fields from document analysis` });
           } else {
-            // Fallback to manual suggestions if auto-apply fails
             setAiSuggestions(filtered);
             toast({ title: "AI Suggestions Ready", description: "Review suggested updates below" });
           }
@@ -369,6 +388,66 @@ const DealDetail = () => {
 
   const handleUnassign = async (assignmentId: string) => {
     const { error } = await supabase.from("deal_assignments").delete().eq("id", assignmentId);
+    if (!error) fetchRelated();
+  };
+
+  // AI Briefing handlers
+  const handleRefreshAiAnalysis = async () => {
+    if (!deal || !id) return;
+    setRefreshingAi(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("analyze-deal-overview", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+        body: { deal_id: id },
+      });
+      if (error) {
+        toast({ title: "Analysis failed", description: error.message, variant: "destructive" });
+      } else if (data?.success) {
+        setAiSummary(data);
+        toast({ title: "AI Analysis Complete", description: "Deal briefing updated" });
+      } else if (data?.error) {
+        toast({ title: "Analysis failed", description: data.error, variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Analysis failed", description: err.message, variant: "destructive" });
+    } finally {
+      setRefreshingAi(false);
+    }
+  };
+
+  // Task handlers
+  const handleAddTask = async () => {
+    if (!newTaskTitle.trim() || !deal || !user) return;
+    setAddingTask(true);
+    const { error } = await supabase.from("deal_tasks").insert({
+      deal_id: deal.id,
+      title: newTaskTitle.trim(),
+      due_date: newTaskDate ? format(newTaskDate, "yyyy-MM-dd") : null,
+      assigned_to: newTaskAssignee || null,
+      created_by: user.id,
+      status: "todo",
+    });
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setNewTaskTitle("");
+      setNewTaskDate(undefined);
+      setNewTaskAssignee("");
+      fetchRelated();
+      toast({ title: "Task added" });
+    }
+    setAddingTask(false);
+  };
+
+  const handleToggleTaskStatus = async (taskId: string, currentStatus: string) => {
+    const newStatus = currentStatus === "done" ? "todo" : "done";
+    const { error } = await supabase.from("deal_tasks").update({ status: newStatus }).eq("id", taskId);
+    if (!error) fetchRelated();
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    const { error } = await supabase.from("deal_tasks").delete().eq("id", taskId);
     if (!error) fetchRelated();
   };
 
@@ -588,45 +667,7 @@ const DealDetail = () => {
                 </CardContent>
               </Card>
 
-              {/* AI Analysis Summary - show full detail from analyzed documents */}
-              {(() => {
-                const analyzedDocs = dealDocuments.filter((d: any) => d.ai_summary);
-                if (analyzedDocs.length === 0 && !analyzingOverview) return null;
-                const latestAnalysis = analyzedDocs.length > 0 ? analyzedDocs[analyzedDocs.length - 1] : null;
-                return (
-                  <Card className="border-accent/20 bg-accent/5 md:col-span-2">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="font-display text-base flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-accent" />
-                        AI Deal Analysis
-                        {latestAnalysis && (
-                          <span className="font-body text-xs text-muted-foreground font-normal ml-2">
-                            from {latestAnalysis.file_name}
-                          </span>
-                        )}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {latestAnalysis?.ai_summary ? (
-                        <div className="font-body text-sm text-foreground prose prose-sm max-w-none dark:prose-invert prose-headings:font-display prose-headings:text-foreground prose-p:text-foreground/90 prose-li:text-foreground/90 prose-strong:text-foreground">
-                          {latestAnalysis.ai_summary.split('\n').map((line: string, i: number) => {
-                            if (line.startsWith('## ')) return <h3 key={i} className="text-sm font-semibold mt-4 mb-2 text-foreground">{line.replace('## ', '')}</h3>;
-                            if (line.startsWith('* ') || line.startsWith('- ')) return <li key={i} className="ml-4 text-foreground/90 mb-1">{line.replace(/^[*-]\s+/, '').split('**').map((part: string, j: number) => j % 2 === 1 ? <strong key={j} className="text-foreground">{part}</strong> : part)}</li>;
-                            if (line.trim() === '') return <div key={i} className="h-2" />;
-                            return <p key={i} className="text-foreground/90 mb-1">{line.split('**').map((part: string, j: number) => j % 2 === 1 ? <strong key={j} className="text-foreground">{part}</strong> : part)}</p>;
-                          })}
-                        </div>
-                      ) : analyzingOverview ? (
-                        <div className="flex items-center gap-2 py-4">
-                          <Loader2 className="h-4 w-4 animate-spin text-accent" />
-                          <span className="font-body text-sm text-muted-foreground">Analyzing document...</span>
-                        </div>
-                      ) : null}
-                    </CardContent>
-                  </Card>
-                );
-              })()}
-
+              {/* AI Document Upload */}
               <Card className="border-border">
                 <CardHeader>
                   <CardTitle className="font-display text-base flex items-center gap-2">
@@ -739,6 +780,246 @@ const DealDetail = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* AI Intelligence Briefing Section */}
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
+              {/* Communications Summary Card */}
+              <Card className="border-accent/20 bg-accent/5 md:col-span-2">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="font-display text-base flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-accent" />
+                      AI Communications Summary
+                      {aiSummary && (
+                        <span className="font-body text-xs text-muted-foreground font-normal ml-2">
+                          {aiSummary.email_count} emails · {aiSummary.document_count} docs
+                        </span>
+                      )}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      {aiSummary?.generated_at && (
+                        <span className="font-body text-[11px] text-muted-foreground">
+                          Updated {format(new Date(aiSummary.generated_at), "MMM d, h:mm a")}
+                        </span>
+                      )}
+                      <Button size="sm" variant="outline" onClick={handleRefreshAiAnalysis} disabled={refreshingAi}>
+                        {refreshingAi ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
+                        Refresh
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {refreshingAi ? (
+                    <div className="flex items-center gap-2 py-4">
+                      <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                      <span className="font-body text-sm text-muted-foreground">Analyzing deal communications...</span>
+                    </div>
+                  ) : aiSummary?.communications_summary ? (
+                    <div className="font-body text-sm text-foreground whitespace-pre-wrap">
+                      {aiSummary.communications_summary}
+                    </div>
+                  ) : (
+                    <p className="font-body text-sm text-muted-foreground py-4 text-center">
+                      Click "Refresh" to generate an AI analysis of this deal's communications and documents.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* AI Concerns Card */}
+              <Card className="border-amber-500/20 bg-amber-500/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="font-display text-base flex items-center gap-2 text-amber-700">
+                    <AlertTriangle className="h-4 w-4" />
+                    AI Concerns
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {aiSummary?.concerns && Array.isArray(aiSummary.concerns) && aiSummary.concerns.length > 0 ? (
+                    <ul className="space-y-2">
+                      {aiSummary.concerns.map((concern: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
+                          <span className="font-body text-sm text-foreground">{concern}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="font-body text-sm text-muted-foreground py-2">
+                      {aiSummary ? "No concerns identified" : "Run AI analysis to identify concerns"}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Missing Data Card */}
+              <Card className="border-blue-500/20 bg-blue-500/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="font-display text-base flex items-center gap-2 text-blue-700">
+                    <Info className="h-4 w-4" />
+                    Missing Data
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {aiSummary?.missing_data && Array.isArray(aiSummary.missing_data) && aiSummary.missing_data.length > 0 ? (
+                    <ul className="space-y-2">
+                      {aiSummary.missing_data.map((item: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <Info className="h-3.5 w-3.5 text-blue-600 mt-0.5 shrink-0" />
+                          <span className="font-body text-sm text-foreground">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="font-body text-sm text-muted-foreground py-2">
+                      {aiSummary ? "No missing data identified" : "Run AI analysis to identify gaps"}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Scheduling & Tasks Card */}
+              <Card className="border-border md:col-span-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="font-display text-base flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-accent" />
+                    Scheduling & Tasks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {/* Mini Calendar */}
+                    <div className="flex justify-center">
+                      <Calendar
+                        mode="single"
+                        selected={newTaskDate}
+                        onSelect={setNewTaskDate}
+                        className={cn("rounded-md border pointer-events-auto")}
+                        modifiers={{
+                          hasTasks: dealTasks
+                            .filter(t => t.due_date)
+                            .map(t => new Date(t.due_date))
+                        }}
+                        modifiersStyles={{
+                          hasTasks: { backgroundColor: "hsl(var(--accent) / 0.2)", fontWeight: "bold" }
+                        }}
+                      />
+                    </div>
+
+                    {/* Task List */}
+                    <div className="space-y-3">
+                      {/* Add Task Form */}
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="New task..."
+                          value={newTaskTitle}
+                          onChange={e => setNewTaskTitle(e.target.value)}
+                          className="flex-1"
+                          onKeyDown={e => e.key === "Enter" && handleAddTask()}
+                        />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="icon" className="shrink-0">
+                              <CalendarDays className="h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                              mode="single"
+                              selected={newTaskDate}
+                              onSelect={setNewTaskDate}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <Select value={newTaskAssignee} onValueChange={setNewTaskAssignee}>
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue placeholder="Assignee" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Unassigned</SelectItem>
+                            {investors.map(inv => (
+                              <SelectItem key={inv.id} value={inv.id}>{inv.full_name || inv.email}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button size="icon" onClick={handleAddTask} disabled={!newTaskTitle.trim() || addingTask}>
+                          {addingTask ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                        </Button>
+                      </div>
+
+                      {newTaskDate && (
+                        <p className="font-body text-xs text-muted-foreground">
+                          Due: {format(newTaskDate, "MMM d, yyyy")}
+                        </p>
+                      )}
+
+                      {/* Task List */}
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                        {dealTasks.length === 0 ? (
+                          <p className="font-body text-sm text-muted-foreground text-center py-4">No tasks yet</p>
+                        ) : (
+                          dealTasks.map(task => {
+                            const assignee = investors.find(i => i.id === task.assigned_to);
+                            return (
+                              <div
+                                key={task.id}
+                                className={cn(
+                                  "flex items-center gap-3 rounded-lg border border-border p-3 transition-all",
+                                  task.status === "done" && "bg-muted/50 opacity-60"
+                                )}
+                              >
+                                <button
+                                  onClick={() => handleToggleTaskStatus(task.id, task.status)}
+                                  className={cn(
+                                    "h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                                    task.status === "done"
+                                      ? "border-accent bg-accent text-accent-foreground"
+                                      : "border-muted-foreground hover:border-accent"
+                                  )}
+                                >
+                                  {task.status === "done" && <CheckCircle2 className="h-3 w-3" />}
+                                </button>
+                                <div className="flex-1 min-w-0">
+                                  <p className={cn(
+                                    "font-body text-sm",
+                                    task.status === "done" && "line-through text-muted-foreground"
+                                  )}>
+                                    {task.title}
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    {task.due_date && (
+                                      <span className="font-body text-[11px] text-muted-foreground">
+                                        {format(new Date(task.due_date), "MMM d")}
+                                      </span>
+                                    )}
+                                    {assignee && (
+                                      <Badge variant="outline" className="text-[10px] py-0">
+                                        {assignee.full_name || assignee.email}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 w-7 p-0 shrink-0"
+                                  onClick={() => handleDeleteTask(task.id)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                                </Button>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Data Room */}

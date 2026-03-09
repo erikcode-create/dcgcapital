@@ -115,13 +115,13 @@
     font-family: 'Inter', sans-serif;
   }
   .text-gradient-royal {
-    background: linear-gradient(to right, hsl(270 50% 45%), hsl(270 50% 25% / 0.4), hsl(270 55% 16% / 0.08));
+    background: linear-gradient(to right, hsl(270 50% 45%), hsl(270 50% 30% / 0.6), hsl(270 55% 20% / 0.25));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .text-gradient-growth {
-    background: linear-gradient(to right, hsl(270 55% 16% / 0.08), hsl(270 50% 25% / 0.4), hsl(270 50% 45%));
+    background: linear-gradient(to right, hsl(270 55% 20% / 0.25), hsl(270 50% 30% / 0.6), hsl(270 50% 45%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

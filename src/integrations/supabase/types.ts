@@ -14,6 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      company_invitations: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          deal_id: string
+          email: string
+          id: string
+          invited_by: string
+          status: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          deal_id: string
+          email: string
+          id?: string
+          invited_by: string
+          status?: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          deal_id?: string
+          email?: string
+          id?: string
+          invited_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_invitations_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_request_items: {
+        Row: {
+          category: string
+          created_at: string
+          deal_id: string
+          description: string | null
+          id: string
+          label: string
+          sort_order: number
+          status: string
+          updated_at: string
+          uploaded_document_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          deal_id: string
+          description?: string | null
+          id?: string
+          label: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+          uploaded_document_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          deal_id?: string
+          description?: string | null
+          id?: string
+          label?: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+          uploaded_document_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_request_items_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_request_items_uploaded_document_id_fkey"
+            columns: ["uploaded_document_id"]
+            isOneToOne: false
+            referencedRelation: "deal_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_ai_summaries: {
         Row: {
           communications_summary: string | null
@@ -619,7 +711,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "investor"
+      app_role: "admin" | "investor" | "company"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -747,7 +839,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "investor"],
+      app_role: ["admin", "investor", "company"],
     },
   },
 } as const

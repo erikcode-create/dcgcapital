@@ -101,6 +101,15 @@ const DealDetail = () => {
   const [newTaskAssignee, setNewTaskAssignee] = useState("");
   const [addingTask, setAddingTask] = useState(false);
 
+  // Company invite state
+  const [inviteCompanyOpen, setInviteCompanyOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteCompanyName, setInviteCompanyName] = useState("");
+  const [inviteContactName, setInviteContactName] = useState("");
+  const [invitingCompany, setInvitingCompany] = useState(false);
+  const [dataRequestItems, setDataRequestItems] = useState<any[]>([]);
+  const [companyInvitations, setCompanyInvitations] = useState<any[]>([]);
+
   const fetchDeal = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -117,7 +126,7 @@ const DealDetail = () => {
 
   const fetchRelated = useCallback(async () => {
     if (!id) return;
-    const [docsRes, emailsRes, notesRes, assignRes, profilesRes, rolesRes, msgsRes, aiSummaryRes, tasksRes] = await Promise.all([
+    const [docsRes, emailsRes, notesRes, assignRes, profilesRes, rolesRes, msgsRes, aiSummaryRes, tasksRes, requestItemsRes, invitationsRes] = await Promise.all([
       (supabase as any).from("deal_documents").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
       (supabase as any).from("deal_emails").select("*, emails(*)").eq("deal_id", id).order("linked_at", { ascending: false }),
       supabase.from("deal_notes").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
@@ -127,11 +136,15 @@ const DealDetail = () => {
       supabase.from("messages").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
       supabase.from("deal_ai_summaries").select("*").eq("deal_id", id).maybeSingle(),
       supabase.from("deal_tasks").select("*").eq("deal_id", id).order("due_date", { ascending: true, nullsFirst: false }),
+      (supabase as any).from("data_request_items").select("*").eq("deal_id", id).order("sort_order"),
+      (supabase as any).from("company_invitations").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
     ]);
     if (docsRes.data) setDealDocuments(docsRes.data);
     if (emailsRes.data) setDealEmails(emailsRes.data);
     if (aiSummaryRes.data) setAiSummary(aiSummaryRes.data);
     if (tasksRes.data) setDealTasks(tasksRes.data);
+    if (requestItemsRes.data) setDataRequestItems(requestItemsRes.data);
+    if (invitationsRes.data) setCompanyInvitations(invitationsRes.data);
     
     const profiles = profilesRes.data || [];
     const roles = rolesRes.data || [];
@@ -451,6 +464,40 @@ const DealDetail = () => {
     if (!error) fetchRelated();
   };
 
+  // Company invite handler
+  const handleInviteCompany = async () => {
+    if (!inviteEmail.trim() || !deal) return;
+    setInvitingCompany(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("invite-company", {
+        body: {
+          email: inviteEmail.trim(),
+          company_name: inviteCompanyName.trim() || null,
+          contact_name: inviteContactName.trim() || null,
+          deal_id: deal.id,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Company invited", description: `Invitation sent to ${inviteEmail}` });
+      setInviteCompanyOpen(false);
+      setInviteEmail("");
+      setInviteCompanyName("");
+      setInviteContactName("");
+      fetchRelated();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setInvitingCompany(false);
+    }
+  };
+
+  // Data request progress for this deal
+  const dataRequestTotal = dataRequestItems.length;
+  const dataRequestCompleted = dataRequestItems.filter(
+    (i: any) => i.status === "uploaded" || i.status === "approved"
+  ).length;
+
   if (loading || !deal) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -546,6 +593,7 @@ const DealDetail = () => {
             <TabsTrigger value="emails" className="font-body">Emails ({dealEmails.length})</TabsTrigger>
             <TabsTrigger value="activity" className="font-body">Activity ({dealNotes.length})</TabsTrigger>
             <TabsTrigger value="investors" className="font-body">Investors ({assignments.length})</TabsTrigger>
+            <TabsTrigger value="company" className="font-body">Company {dataRequestTotal > 0 ? `(${dataRequestCompleted}/${dataRequestTotal})` : ""}</TabsTrigger>
           </TabsList>
 
           {/* Overview */}
@@ -1235,6 +1283,178 @@ const DealDetail = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Company Data Room */}
+          <TabsContent value="company">
+            <Card className="border-border">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="font-display text-base">Company Data Room</CardTitle>
+                <Dialog open={inviteCompanyOpen} onOpenChange={setInviteCompanyOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Mail className="mr-2 h-4 w-4" />
+                      Invite Company
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="font-display">Invite Company to Data Room</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-2">
+                      <div>
+                        <Label className="text-foreground/70">Contact Email *</Label>
+                        <Input
+                          type="email"
+                          value={inviteEmail}
+                          onChange={(e) => setInviteEmail(e.target.value)}
+                          placeholder="contact@company.com"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-foreground/70">Contact Name</Label>
+                        <Input
+                          value={inviteContactName}
+                          onChange={(e) => setInviteContactName(e.target.value)}
+                          placeholder="John Smith"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-foreground/70">Company Name</Label>
+                        <Input
+                          value={inviteCompanyName}
+                          onChange={(e) => setInviteCompanyName(e.target.value)}
+                          placeholder="Acme Corp"
+                          className="mt-1"
+                        />
+                      </div>
+                      <p className="font-body text-xs text-muted-foreground">
+                        An invitation email will be sent from data@fitzcap.co with a secure link to upload documents.
+                      </p>
+                      <Button
+                        className="w-full"
+                        onClick={handleInviteCompany}
+                        disabled={!inviteEmail.trim() || invitingCompany}
+                      >
+                        {invitingCompany ? (
+                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sending...</>
+                        ) : (
+                          <><Mail className="mr-2 h-4 w-4" />Send Invitation</>
+                        )}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                {/* Invitations sent */}
+                {companyInvitations.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-body text-sm font-medium text-foreground mb-2">Invitations</h4>
+                    <div className="space-y-2">
+                      {companyInvitations.map((inv: any) => (
+                        <div key={inv.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                          <div>
+                            <p className="font-body text-sm font-medium">{inv.email}</p>
+                            <p className="font-body text-xs text-muted-foreground">
+                              {inv.company_name || "No company name"} · Invited {format(new Date(inv.created_at), "MMM d, yyyy")}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-xs capitalize">{inv.status}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Data request checklist progress */}
+                {dataRequestTotal > 0 ? (
+                  <div>
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-body text-sm font-medium text-foreground">Document Checklist</h4>
+                          <span className="font-body text-xs text-muted-foreground">
+                            {dataRequestCompleted}/{dataRequestTotal} uploaded
+                          </span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-accent transition-all"
+                            style={{ width: `${dataRequestTotal > 0 ? (dataRequestCompleted / dataRequestTotal) * 100 : 0}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {dataRequestItems.map((item: any) => (
+                        <div key={item.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                          <div className="flex items-center gap-2">
+                            {item.status === "approved" ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            ) : item.status === "uploaded" ? (
+                              <Upload className="h-4 w-4 text-accent" />
+                            ) : (
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                            )}
+                            <div>
+                              <p className="font-body text-sm">{item.label}</p>
+                              <p className="font-body text-[11px] text-muted-foreground">{item.category}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant="outline"
+                              className={`text-[10px] capitalize ${
+                                item.status === "approved" ? "text-green-600 border-green-200" :
+                                item.status === "uploaded" ? "text-accent border-accent/20" :
+                                item.status === "rejected" ? "text-destructive border-destructive/20" :
+                                ""
+                              }`}
+                            >
+                              {item.status === "rejected" ? "Needs Revision" : item.status}
+                            </Badge>
+                            {item.status === "uploaded" && (
+                              <div className="flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 text-xs text-green-600"
+                                  onClick={async () => {
+                                    await (supabase as any).from("data_request_items").update({ status: "approved" }).eq("id", item.id);
+                                    fetchRelated();
+                                  }}
+                                >
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 text-xs text-destructive"
+                                  onClick={async () => {
+                                    await (supabase as any).from("data_request_items").update({ status: "rejected" }).eq("id", item.id);
+                                    fetchRelated();
+                                  }}
+                                >
+                                  <XIcon className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="font-body text-sm text-muted-foreground text-center py-4">
+                    No company has been invited yet. Click "Invite Company" to send a data room invitation.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
       </main>
     </div>

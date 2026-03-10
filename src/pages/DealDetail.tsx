@@ -126,7 +126,7 @@ const DealDetail = () => {
 
   const fetchRelated = useCallback(async () => {
     if (!id) return;
-    const [docsRes, emailsRes, notesRes, assignRes, profilesRes, rolesRes, msgsRes, aiSummaryRes, tasksRes] = await Promise.all([
+    const [docsRes, emailsRes, notesRes, assignRes, profilesRes, rolesRes, msgsRes, aiSummaryRes, tasksRes, requestItemsRes, invitationsRes] = await Promise.all([
       (supabase as any).from("deal_documents").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
       (supabase as any).from("deal_emails").select("*, emails(*)").eq("deal_id", id).order("linked_at", { ascending: false }),
       supabase.from("deal_notes").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
@@ -136,6 +136,8 @@ const DealDetail = () => {
       supabase.from("messages").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
       supabase.from("deal_ai_summaries").select("*").eq("deal_id", id).maybeSingle(),
       supabase.from("deal_tasks").select("*").eq("deal_id", id).order("due_date", { ascending: true, nullsFirst: false }),
+      (supabase as any).from("data_request_items").select("*").eq("deal_id", id).order("sort_order"),
+      (supabase as any).from("company_invitations").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
     ]);
     if (docsRes.data) setDealDocuments(docsRes.data);
     if (emailsRes.data) setDealEmails(emailsRes.data);

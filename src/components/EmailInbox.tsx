@@ -199,11 +199,12 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
-      // Use session token if available, otherwise invoke with default anon key (preview mode)
-      const headers: Record<string, string> = {};
-      if (session) {
-        headers.Authorization = `Bearer ${session.access_token}`;
-      }
+      // Use session token if available, otherwise fall back to anon key for preview mode
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const token = session?.access_token || anonKey;
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${token}`,
+      };
 
       const { data, error } = await supabase.functions.invoke("fetch-emails", {
         headers,

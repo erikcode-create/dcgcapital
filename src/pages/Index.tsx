@@ -239,8 +239,8 @@ const Index = () => {
                 </Button>
               </a>
               <Link to="/login">
-                <Button size="lg" variant="outline" className="border-primary-foreground/60 font-body text-sm text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
-                  Investor Portal Login <ArrowUpRight className="ml-2 h-4 w-4" />
+                <Button size="lg" variant="outline" className="border-accent-foreground bg-primary-foreground/10 font-body text-sm text-accent-foreground hover:bg-primary-foreground/20">
+                  Portal Login <ArrowUpRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </motion.div>

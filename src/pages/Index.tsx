@@ -183,7 +183,7 @@ const Index = () => {
             <Link to="/login">
               <Button variant="outline" size="sm" className="border-accent/40 font-body text-xs text-accent hover:bg-accent hover:text-accent-foreground">
                 <Lock className="mr-1.5 h-3 w-3" />
-                Investor Portal
+                Portal
               </Button>
             </Link>
           </div>

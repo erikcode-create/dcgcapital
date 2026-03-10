@@ -274,10 +274,14 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     setConverting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
+
+      const headers: Record<string, string> = {};
+      if (session) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
 
       const { data, error } = await supabase.functions.invoke("convert-email-to-deal", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers,
         body: { email_id: email.id, category },
       });
 

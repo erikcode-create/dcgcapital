@@ -8,12 +8,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Shield, Mail, CheckCircle } from "lucide-react";
 
+const isPreviewMode = () => {
+  const hostname = window.location.hostname;
+  return hostname.includes("preview") && hostname.endsWith(".lovable.app");
+};
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // In preview mode, skip login and go straight to admin
+  useEffect(() => {
+    if (isPreviewMode()) {
+      navigate("/admin", { replace: true });
+    }
+  }, [navigate]);
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();

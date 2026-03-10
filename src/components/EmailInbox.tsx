@@ -228,14 +228,18 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     setSending(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
 
       const payload = replyToId
         ? { to: selectedEmail?.from_address, subject: `Re: ${selectedEmail?.subject}`, body: replyBody, replyToId: selectedEmail?.microsoft_id }
         : { to: compose.to.split(",").map((s) => s.trim()).filter(Boolean), cc: compose.cc ? compose.cc.split(",").map((s) => s.trim()).filter(Boolean) : undefined, subject: compose.subject, body: compose.body };
 
+      const headers: Record<string, string> = {};
+      if (session) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
       const { data, error } = await supabase.functions.invoke("send-email", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers,
         body: payload,
       });
 

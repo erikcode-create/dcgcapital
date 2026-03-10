@@ -11,7 +11,7 @@ import { ArrowLeft, Shield, Mail, CheckCircle } from "lucide-react";
 // Detect Lovable preview environment to skip auth
 const isPreviewMode = () => {
   const hostname = window.location.hostname;
-  return hostname.endsWith(".lovable.app") && (hostname.includes("preview") || hostname.includes("id-preview"));
+  return hostname.endsWith(".lovableproject.com") || (hostname.endsWith(".lovable.app") && hostname.includes("preview"));
 };
 
 const Login = () => {

@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Shield, Mail, CheckCircle } from "lucide-react";
 
+// Detect Lovable preview environment to skip auth
 const isPreviewMode = () => {
   const hostname = window.location.hostname;
-  return hostname.includes("preview") && hostname.endsWith(".lovable.app");
+  return hostname.endsWith(".lovableproject.com") || (hostname.endsWith(".lovable.app") && hostname.includes("preview"));
 };
 
 const Login = () => {

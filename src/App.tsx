@@ -30,6 +30,7 @@ const App = () => (
             <Route path="/portal" element={<ProtectedRoute requiredRole="investor"><InvestorPortal /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPortal /></ProtectedRoute>} />
             <Route path="/admin/deals/:id" element={<ProtectedRoute requiredRole="admin"><DealDetail /></ProtectedRoute>} />
+            <Route path="/company" element={<ProtectedRoute requiredRole="company"><CompanyPortal /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

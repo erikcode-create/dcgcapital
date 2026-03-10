@@ -66,6 +66,8 @@ const Login = () => {
 
       if (roleData?.role === "admin") {
         navigate("/admin");
+      } else if (roleData?.role === "company") {
+        navigate("/company");
       } else {
         navigate("/portal");
       }

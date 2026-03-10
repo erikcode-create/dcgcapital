@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: "admin" | "investor";
+  requiredRole?: "admin" | "investor" | "company";
 }
 
 const isPreviewMode = () => {

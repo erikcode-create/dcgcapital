@@ -7,7 +7,7 @@ const isPreviewMode = () => {
   return hostname.includes("preview") && hostname.endsWith(".lovable.app");
 };
 
-type UserRole = "admin" | "investor";
+type UserRole = "admin" | "investor" | "company";
 
 interface AuthContextType {
   user: User | null;

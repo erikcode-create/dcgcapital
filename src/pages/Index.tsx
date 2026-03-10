@@ -402,7 +402,7 @@ const Index = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
             <p className="font-body mb-3 text-xs uppercase tracking-[0.2em] text-accent">About</p>
             <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">
-              Helping Growth-Stage Companies <span className="text-gradient-royal font-medium">Unlock Capital</span>
+              Helping Growth-Stage Companies <span className="font-medium text-accent">Unlock Capital</span>
             </h2>
             <p className="font-body mt-8 text-base leading-relaxed text-muted-foreground">
               Fitzpatrick Capital Partners provides growth-stage companies with access to capital solutions

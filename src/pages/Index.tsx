@@ -219,7 +219,7 @@ const Index = () => {
               initial="hidden" animate="visible" variants={fadeUp} custom={1}
               className="font-display text-5xl font-light leading-[1.1] text-primary-foreground md:text-6xl lg:text-7xl"
             >
-              <span className="text-gradient-growth font-medium">Growth</span> Capital Without Early{" "}
+              <span className="font-medium text-primary-foreground">Growth</span> Capital Without Early{" "}
               <span className="text-gradient-royal font-medium">Equity Dilution</span>
             </motion.h1>
             <motion.p
@@ -255,7 +255,7 @@ const Index = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
             <p className="font-body mb-3 text-xs uppercase tracking-[0.2em] text-accent">Our Approach</p>
             <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">
-              Capital Strategy Built for <span className="text-gradient-royal font-medium">Growth</span>
+              Capital Strategy Built for <span className="font-medium text-accent">Growth</span>
             </h2>
           </motion.div>
           <div className="mt-16 grid gap-6 md:grid-cols-3">
@@ -282,7 +282,7 @@ const Index = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
             <p className="font-body mb-3 text-xs uppercase tracking-[0.2em] text-royal-light">Capital Solutions</p>
             <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">
-              Structured for <span className="text-gradient-royal font-medium">Your Growth</span>
+              Structured for <span className="font-medium text-primary-foreground">Your Growth</span>
             </h2>
           </motion.div>
           <div className="mt-16 grid gap-4 md:grid-cols-2">
@@ -322,7 +322,7 @@ const Index = () => {
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
               <p className="font-body mb-3 text-xs uppercase tracking-[0.2em] text-accent">Who We Work With</p>
               <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">
-                Target Company <span className="text-gradient-royal font-medium">Profile</span>
+                Target Company <span className="font-medium text-accent">Profile</span>
               </h2>
               <div className="mt-10 space-y-4">
                 {[
@@ -363,7 +363,7 @@ const Index = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
             <p className="font-body mb-3 text-xs uppercase tracking-[0.2em] text-royal-light">Why Alternative Capital</p>
             <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">
-              A Better Path to <span className="text-gradient-royal font-medium">Scale</span>
+              A Better Path to <span className="font-medium text-primary-foreground">Scale</span>
             </h2>
           </motion.div>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
@@ -402,7 +402,7 @@ const Index = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
             <p className="font-body mb-3 text-xs uppercase tracking-[0.2em] text-accent">About</p>
             <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">
-              Helping Growth-Stage Companies <span className="text-gradient-royal font-medium">Unlock Capital</span>
+              Helping Growth-Stage Companies <span className="font-medium text-accent">Unlock Capital</span>
             </h2>
             <p className="font-body mt-8 text-base leading-relaxed text-muted-foreground">
               Fitzpatrick Capital Partners provides growth-stage companies with access to capital solutions
@@ -434,7 +434,7 @@ const Index = () => {
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center">
               <p className="font-body mb-3 text-xs uppercase tracking-[0.2em] text-royal-light">Submit Opportunity</p>
               <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">
-                Tell Us About Your <span className="text-gradient-royal font-medium">Company</span>
+                Tell Us About Your <span className="font-medium text-primary-foreground">Company</span>
               </h2>
               <p className="font-body mt-4 text-sm text-primary-foreground/40">
                 Confidential submissions reviewed within 48 hours.

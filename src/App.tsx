@@ -11,6 +11,7 @@ import ResetPassword from "./pages/ResetPassword";
 import InvestorPortal from "./pages/InvestorPortal";
 import AdminPortal from "./pages/AdminPortal";
 import DealDetail from "./pages/DealDetail";
+import CompanyPortal from "./pages/CompanyPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

@@ -322,7 +322,7 @@ const Index = () => {
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
               <p className="font-body mb-3 text-xs uppercase tracking-[0.2em] text-accent">Who We Work With</p>
               <h2 className="font-display text-4xl font-light text-foreground md:text-5xl">
-                Target Company <span className="text-gradient-royal font-medium">Profile</span>
+                Target Company <span className="font-medium text-accent">Profile</span>
               </h2>
               <div className="mt-10 space-y-4">
                 {[

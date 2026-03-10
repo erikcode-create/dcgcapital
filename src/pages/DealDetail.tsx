@@ -101,6 +101,15 @@ const DealDetail = () => {
   const [newTaskAssignee, setNewTaskAssignee] = useState("");
   const [addingTask, setAddingTask] = useState(false);
 
+  // Company invite state
+  const [inviteCompanyOpen, setInviteCompanyOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteCompanyName, setInviteCompanyName] = useState("");
+  const [inviteContactName, setInviteContactName] = useState("");
+  const [invitingCompany, setInvitingCompany] = useState(false);
+  const [dataRequestItems, setDataRequestItems] = useState<any[]>([]);
+  const [companyInvitations, setCompanyInvitations] = useState<any[]>([]);
+
   const fetchDeal = useCallback(async () => {
     if (!id) return;
     setLoading(true);

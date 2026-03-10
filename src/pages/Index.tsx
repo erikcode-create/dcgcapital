@@ -363,7 +363,7 @@ const Index = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="mx-auto max-w-3xl text-center">
             <p className="font-body mb-3 text-xs uppercase tracking-[0.2em] text-royal-light">Why Alternative Capital</p>
             <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">
-              A Better Path to <span className="text-gradient-royal font-medium">Scale</span>
+              A Better Path to <span className="font-medium text-primary-foreground">Scale</span>
             </h2>
           </motion.div>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}

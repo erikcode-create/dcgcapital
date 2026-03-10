@@ -142,11 +142,12 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
       setLoadingAttachments(true);
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const token = session?.access_token || anonKey;
 
         const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-email-attachments?microsoft_id=${encodeURIComponent(selectedEmail.microsoft_id)}`;
         const res = await fetch(url, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         if (data.success && data.attachments) {

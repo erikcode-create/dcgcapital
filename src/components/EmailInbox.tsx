@@ -168,11 +168,12 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     setDownloadingId(att.id);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const token = session?.access_token || anonKey;
 
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-email-attachments?microsoft_id=${encodeURIComponent(selectedEmail.microsoft_id)}&download_id=${encodeURIComponent(att.id)}`;
       const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) throw new Error("Download failed");

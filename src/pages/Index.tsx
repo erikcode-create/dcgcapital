@@ -434,7 +434,7 @@ const Index = () => {
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center">
               <p className="font-body mb-3 text-xs uppercase tracking-[0.2em] text-royal-light">Submit Opportunity</p>
               <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">
-                Tell Us About Your <span className="text-gradient-royal font-medium">Company</span>
+                Tell Us About Your <span className="font-medium text-primary-foreground">Company</span>
               </h2>
               <p className="font-body mt-4 text-sm text-primary-foreground/40">
                 Confidential submissions reviewed within 48 hours.

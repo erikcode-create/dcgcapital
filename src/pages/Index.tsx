@@ -219,7 +219,7 @@ const Index = () => {
               initial="hidden" animate="visible" variants={fadeUp} custom={1}
               className="font-display text-5xl font-light leading-[1.1] text-primary-foreground md:text-6xl lg:text-7xl"
             >
-              <span className="text-gradient-growth font-medium">Growth</span> Capital Without Early{" "}
+              <span className="font-medium text-primary-foreground">Growth</span> Capital Without Early{" "}
               <span className="text-gradient-royal font-medium">Equity Dilution</span>
             </motion.h1>
             <motion.p

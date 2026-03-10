@@ -593,6 +593,7 @@ const DealDetail = () => {
             <TabsTrigger value="emails" className="font-body">Emails ({dealEmails.length})</TabsTrigger>
             <TabsTrigger value="activity" className="font-body">Activity ({dealNotes.length})</TabsTrigger>
             <TabsTrigger value="investors" className="font-body">Investors ({assignments.length})</TabsTrigger>
+            <TabsTrigger value="company" className="font-body">Company {dataRequestTotal > 0 ? `(${dataRequestCompleted}/${dataRequestTotal})` : ""}</TabsTrigger>
           </TabsList>
 
           {/* Overview */}

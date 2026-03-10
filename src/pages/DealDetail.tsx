@@ -464,6 +464,40 @@ const DealDetail = () => {
     if (!error) fetchRelated();
   };
 
+  // Company invite handler
+  const handleInviteCompany = async () => {
+    if (!inviteEmail.trim() || !deal) return;
+    setInvitingCompany(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("invite-company", {
+        body: {
+          email: inviteEmail.trim(),
+          company_name: inviteCompanyName.trim() || null,
+          contact_name: inviteContactName.trim() || null,
+          deal_id: deal.id,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Company invited", description: `Invitation sent to ${inviteEmail}` });
+      setInviteCompanyOpen(false);
+      setInviteEmail("");
+      setInviteCompanyName("");
+      setInviteContactName("");
+      fetchRelated();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setInvitingCompany(false);
+    }
+  };
+
+  // Data request progress for this deal
+  const dataRequestTotal = dataRequestItems.length;
+  const dataRequestCompleted = dataRequestItems.filter(
+    (i: any) => i.status === "uploaded" || i.status === "approved"
+  ).length;
+
   if (loading || !deal) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">

@@ -142,11 +142,12 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
       setLoadingAttachments(true);
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const token = session?.access_token || anonKey;
 
         const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-email-attachments?microsoft_id=${encodeURIComponent(selectedEmail.microsoft_id)}`;
         const res = await fetch(url, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         if (data.success && data.attachments) {
@@ -167,11 +168,12 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     setDownloadingId(att.id);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const token = session?.access_token || anonKey;
 
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-email-attachments?microsoft_id=${encodeURIComponent(selectedEmail.microsoft_id)}&download_id=${encodeURIComponent(att.id)}`;
       const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) throw new Error("Download failed");
@@ -196,10 +198,15 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     setSyncing(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
+
+      // Use session token if available, otherwise invoke with default anon key (preview mode)
+      const headers: Record<string, string> = {};
+      if (session) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
 
       const { data, error } = await supabase.functions.invoke("fetch-emails", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers,
       });
 
       if (error) throw error;
@@ -221,14 +228,18 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     setSending(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
 
       const payload = replyToId
         ? { to: selectedEmail?.from_address, subject: `Re: ${selectedEmail?.subject}`, body: replyBody, replyToId: selectedEmail?.microsoft_id }
         : { to: compose.to.split(",").map((s) => s.trim()).filter(Boolean), cc: compose.cc ? compose.cc.split(",").map((s) => s.trim()).filter(Boolean) : undefined, subject: compose.subject, body: compose.body };
 
+      const headers: Record<string, string> = {};
+      if (session) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
       const { data, error } = await supabase.functions.invoke("send-email", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers,
         body: payload,
       });
 
@@ -263,10 +274,14 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     setConverting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
+
+      const headers: Record<string, string> = {};
+      if (session) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
 
       const { data, error } = await supabase.functions.invoke("convert-email-to-deal", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers,
         body: { email_id: email.id, category },
       });
 

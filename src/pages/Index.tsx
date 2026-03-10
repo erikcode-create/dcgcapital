@@ -282,7 +282,7 @@ const Index = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
             <p className="font-body mb-3 text-xs uppercase tracking-[0.2em] text-royal-light">Capital Solutions</p>
             <h2 className="font-display text-4xl font-light text-primary-foreground md:text-5xl">
-              Structured for <span className="text-gradient-royal font-medium">Your Growth</span>
+              Structured for <span className="font-medium text-primary-foreground">Your Growth</span>
             </h2>
           </motion.div>
           <div className="mt-16 grid gap-4 md:grid-cols-2">

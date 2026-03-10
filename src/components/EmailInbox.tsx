@@ -196,10 +196,15 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     setSyncing(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
+
+      // Use session token if available, otherwise invoke with default anon key (preview mode)
+      const headers: Record<string, string> = {};
+      if (session) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
 
       const { data, error } = await supabase.functions.invoke("fetch-emails", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers,
       });
 
       if (error) throw error;

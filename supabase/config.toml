@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.submit-deal]
 verify_jwt = false
+
+[functions.fetch-emails]
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false

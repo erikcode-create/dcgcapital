@@ -77,6 +77,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Verify admin - allow preview mode (no valid JWT) to proceed
+    let userId: string | null = null;
     const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -85,7 +86,7 @@ Deno.serve(async (req) => {
     
     if (claimsData?.claims) {
       // Valid JWT - verify admin role
-      const userId = claimsData.claims.sub as string;
+      userId = claimsData.claims.sub as string;
       const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
       if (!isAdmin) {
         return new Response(JSON.stringify({ error: "Forbidden: Admin only" }), {

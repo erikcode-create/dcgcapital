@@ -437,7 +437,7 @@ const DealDetail = () => {
       deal_id: deal.id,
       title: newTaskTitle.trim(),
       due_date: newTaskDate ? format(newTaskDate, "yyyy-MM-dd") : null,
-      assigned_to: newTaskAssignee || null,
+      assigned_to: newTaskAssignee && newTaskAssignee !== "unassigned" ? newTaskAssignee : null,
       created_by: user.id,
       status: "todo",
     });
@@ -987,7 +987,7 @@ const DealDetail = () => {
                             <SelectValue placeholder="Assignee" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Unassigned</SelectItem>
+                            <SelectItem value="unassigned">Unassigned</SelectItem>
                             {investors.map(inv => (
                               <SelectItem key={inv.id} value={inv.id}>{inv.full_name || inv.email}</SelectItem>
                             ))}

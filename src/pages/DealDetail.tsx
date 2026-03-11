@@ -987,7 +987,7 @@ const DealDetail = () => {
                             <SelectValue placeholder="Assignee" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Unassigned</SelectItem>
+                            <SelectItem value="unassigned">Unassigned</SelectItem>
                             {investors.map(inv => (
                               <SelectItem key={inv.id} value={inv.id}>{inv.full_name || inv.email}</SelectItem>
                             ))}

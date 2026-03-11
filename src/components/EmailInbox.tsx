@@ -92,6 +92,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [linkedDeals, setLinkedDeals] = useState<Map<string, string>>(new Map());
   const { toast } = useToast();
 
   const fetchEmails = useCallback(async () => {
@@ -106,16 +107,21 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
         .limit(100),
       supabase
         .from("deal_emails")
-        .select("email_id"),
+        .select("email_id, deals(name)"),
     ]);
 
     if (emailsResult.error) {
       console.error("Error fetching emails:", emailsResult.error);
       setEmails([]);
     } else {
-      const linkedIds = new Set((linkedResult.data || []).map(d => d.email_id));
-      const unlinkedEmails = (emailsResult.data || []).filter(e => !linkedIds.has(e.id));
-      setEmails(unlinkedEmails as Email[]);
+      // Build a map of email_id -> deal name for linked emails
+      const dealMap = new Map<string, string>();
+      (linkedResult.data || []).forEach((d: any) => {
+        const dealName = d.deals?.name;
+        if (dealName) dealMap.set(d.email_id, dealName);
+      });
+      setLinkedDeals(dealMap);
+      setEmails((emailsResult.data || []) as Email[]);
     }
     setLoading(false);
   }, [activeFolder]);
@@ -388,6 +394,12 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
               )}
               <Badge variant="outline" className="text-[10px] capitalize">{selectedEmail.folder}</Badge>
               {getCategoryBadge(selectedEmail.category)}
+              {linkedDeals.has(selectedEmail.id) && (
+                <Badge variant="secondary" className="text-[10px]">
+                  <Briefcase className="mr-1 h-3 w-3" />
+                  Deal: {linkedDeals.get(selectedEmail.id)}
+                </Badge>
+              )}
             </div>
           </CardHeader>
           <Separator />
@@ -650,6 +662,12 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
                         : email.from_name || email.from_address}
                     </span>
                     {getCategoryBadge(email.category)}
+                    {linkedDeals.has(email.id) && (
+                      <Badge variant="secondary" className="text-[10px]">
+                        <Briefcase className="mr-1 h-3 w-3" />
+                        {linkedDeals.get(email.id)}
+                      </Badge>
+                    )}
                     <span className="ml-auto text-[11px] font-body text-muted-foreground flex-shrink-0 flex items-center gap-1">
                       {email.has_attachments && <Paperclip className="h-3 w-3" />}
                       {email.received_at ? format(new Date(email.received_at), "MMM d, h:mm a") : ""}

@@ -52,12 +52,6 @@ Deno.serve(async (req) => {
       }
     }
     // If no valid JWT (e.g. preview mode with anon key), allow through
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     const { deal_id } = await req.json();
     if (!deal_id) {

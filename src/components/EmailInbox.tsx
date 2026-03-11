@@ -662,6 +662,12 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
                         : email.from_name || email.from_address}
                     </span>
                     {getCategoryBadge(email.category)}
+                    {linkedDeals.has(email.id) && (
+                      <Badge variant="secondary" className="text-[10px]">
+                        <Briefcase className="mr-1 h-3 w-3" />
+                        {linkedDeals.get(email.id)}
+                      </Badge>
+                    )}
                     <span className="ml-auto text-[11px] font-body text-muted-foreground flex-shrink-0 flex items-center gap-1">
                       {email.has_attachments && <Paperclip className="h-3 w-3" />}
                       {email.received_at ? format(new Date(email.received_at), "MMM d, h:mm a") : ""}

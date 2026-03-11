@@ -394,6 +394,12 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
               )}
               <Badge variant="outline" className="text-[10px] capitalize">{selectedEmail.folder}</Badge>
               {getCategoryBadge(selectedEmail.category)}
+              {linkedDeals.has(selectedEmail.id) && (
+                <Badge variant="secondary" className="text-[10px]">
+                  <Briefcase className="mr-1 h-3 w-3" />
+                  Deal: {linkedDeals.get(selectedEmail.id)}
+                </Badge>
+              )}
             </div>
           </CardHeader>
           <Separator />

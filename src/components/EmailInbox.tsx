@@ -107,16 +107,21 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
         .limit(100),
       supabase
         .from("deal_emails")
-        .select("email_id"),
+        .select("email_id, deals(name)"),
     ]);
 
     if (emailsResult.error) {
       console.error("Error fetching emails:", emailsResult.error);
       setEmails([]);
     } else {
-      const linkedIds = new Set((linkedResult.data || []).map(d => d.email_id));
-      const unlinkedEmails = (emailsResult.data || []).filter(e => !linkedIds.has(e.id));
-      setEmails(unlinkedEmails as Email[]);
+      // Build a map of email_id -> deal name for linked emails
+      const dealMap = new Map<string, string>();
+      (linkedResult.data || []).forEach((d: any) => {
+        const dealName = d.deals?.name;
+        if (dealName) dealMap.set(d.email_id, dealName);
+      });
+      setLinkedDeals(dealMap);
+      setEmails((emailsResult.data || []) as Email[]);
     }
     setLoading(false);
   }, [activeFolder]);

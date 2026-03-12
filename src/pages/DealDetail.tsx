@@ -44,6 +44,11 @@ const CATEGORIES = [
   { key: "revenue_seeking", label: "Revenue Seeking", color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
 ];
 
+const REVENUE_STAGES = [
+  { key: "pre_revenue", label: "Pre Revenue", color: "bg-rose-500/10 text-rose-700 border-rose-500/30" },
+  { key: "post_revenue", label: "Post Revenue", color: "bg-teal-500/10 text-teal-700 border-teal-500/30" },
+];
+
 const DEAL_TYPES = [
   { key: "equity", label: "Equity" },
   { key: "debt", label: "Debt" },
@@ -665,6 +670,19 @@ const DealDetail = () => {
             <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               {CATEGORIES.map(c => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          <Select value={deal.revenue_stage || "post_revenue"} onValueChange={async (v) => {
+            const { error } = await supabase.from("deals").update({ revenue_stage: v }).eq("id", deal.id);
+            if (!error) {
+              setDeal({ ...deal, revenue_stage: v });
+              setEditData({ ...editData, revenue_stage: v });
+            }
+          }}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {REVENUE_STAGES.map(r => <SelectItem key={r.key} value={r.key}>{r.label}</SelectItem>)}
             </SelectContent>
           </Select>
 

@@ -408,6 +408,7 @@ export type Database = {
           notes: string | null
           pitch_deck_path: string | null
           revenue: number | null
+          revenue_stage: string | null
           sector: string | null
           source_email_id: string | null
           stage: string
@@ -434,6 +435,7 @@ export type Database = {
           notes?: string | null
           pitch_deck_path?: string | null
           revenue?: number | null
+          revenue_stage?: string | null
           sector?: string | null
           source_email_id?: string | null
           stage?: string
@@ -460,6 +462,7 @@ export type Database = {
           notes?: string | null
           pitch_deck_path?: string | null
           revenue?: number | null
+          revenue_stage?: string | null
           sector?: string | null
           source_email_id?: string | null
           stage?: string

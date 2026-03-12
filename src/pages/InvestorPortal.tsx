@@ -196,7 +196,7 @@ const InvestorPortal = () => {
         <div className="bg-gradient-royal px-6 py-2 text-center">
           <div className="container mx-auto flex items-center justify-center gap-3">
             <Eye className="h-4 w-4 text-accent-foreground" />
-            <span className="font-body text-sm font-medium text-accent-foreground">Admin Preview — You're viewing the investor portal as an admin</span>
+            <span className="font-body text-sm font-medium text-accent-foreground">Admin Preview — Viewing as {viewedProfile?.full_name || "all investors"}</span>
             <Button size="sm" variant="outline" className="ml-4 h-7 border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10" onClick={() => navigate("/admin")}>
               <ArrowLeft className="mr-1 h-3 w-3" />Back to Admin
             </Button>

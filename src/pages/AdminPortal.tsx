@@ -621,6 +621,17 @@ const AdminPortal = () => {
                     <div><Label>Full Name *</Label><Input value={newInvestor.full_name} onChange={(e) => setNewInvestor({ ...newInvestor, full_name: e.target.value })} required className="mt-1" /></div>
                     <div><Label>Company</Label><Input value={newInvestor.company} onChange={(e) => setNewInvestor({ ...newInvestor, company: e.target.value })} className="mt-1" /></div>
                     <div><Label>Phone</Label><Input value={newInvestor.phone} onChange={(e) => setNewInvestor({ ...newInvestor, phone: e.target.value })} className="mt-1" /></div>
+                    <div>
+                      <Label>Role *</Label>
+                      <Select value={newInvestor.role} onValueChange={(v) => setNewInvestor({ ...newInvestor, role: v })}>
+                        <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="investor">Investor</SelectItem>
+                          <SelectItem value="company">Company</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <Button type="submit" className="w-full bg-gradient-royal text-accent-foreground" disabled={creatingInvestor}>
                       {creatingInvestor ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</> : "Create User"}
                     </Button>

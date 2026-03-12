@@ -1,3 +1,5 @@
+// ABOUTME: Investor portal page showing deals assigned to the logged-in investor.
+// ABOUTME: Supports admin "view as investor" mode via ?viewAs= query param.
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,29 +9,40 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, TrendingUp, MessageSquare, Heart, User, ArrowLeft, Eye, Download } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import NdaSigning from "@/components/NdaSigning";
 
 const InvestorPortal = () => {
   const { user, profile, userRole, signOut } = useAuth();
   const isAdminViewing = userRole === "admin";
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const viewAs = searchParams.get("viewAs");
   const [deals, setDeals] = useState<any[]>([]);
   const [messages, setMessages] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [ndaSigned, setNdaSigned] = useState<boolean | null>(null);
+  const [viewedProfile, setViewedProfile] = useState<any | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user) {
+    if (viewAs && isAdminViewing) {
+      // Admin viewing as a specific investor
+      setNdaSigned(true);
+      fetchViewedInvestor(viewAs);
+    } else if (user) {
       if (isAdminViewing) {
         setNdaSigned(true);
         fetchDeals();
       } else {
         checkNda();
       }
+    } else {
+      // Preview mode with no user and no viewAs — fetch all deals
+      setNdaSigned(true);
+      fetchDeals();
     }
-  }, [user]);
+  }, [user, viewAs]);
 
   const checkNda = async () => {
     if (!user) return;

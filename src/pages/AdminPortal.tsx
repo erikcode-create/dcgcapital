@@ -56,6 +56,7 @@ const formatCurrency = (value: number | null | undefined) => {
 const AdminPortal = () => {
   const { user, signOut } = useAuth();
   const [deals, setDeals] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [investors, setInvestors] = useState<any[]>([]);
   const [interests, setInterests] = useState<any[]>([]);
   const [allMessages, setAllMessages] = useState<any[]>([]);

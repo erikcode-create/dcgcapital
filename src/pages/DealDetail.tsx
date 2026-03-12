@@ -22,7 +22,7 @@ import {
   ArrowLeft, Trash2, Users, DollarSign, TrendingUp, Edit, Save, X,
   Briefcase, MapPin, Mail, FileText, Clock, User, Loader2, MessageSquare,
   Building2, Phone, ChevronRight, Upload, Sparkles, Check, X as XIcon,
-  AlertTriangle, Info, CalendarDays, Plus, CheckCircle2, RefreshCw
+  AlertTriangle, Info, CalendarDays, Plus, CheckCircle2, RefreshCw, Send
 } from "lucide-react";
 import DataRoomSection from "@/components/DataRoomSection";
 import { format } from "date-fns";
@@ -116,6 +116,14 @@ const DealDetail = () => {
   const [invitingCompany, setInvitingCompany] = useState(false);
   const [dataRequestItems, setDataRequestItems] = useState<any[]>([]);
   const [companyInvitations, setCompanyInvitations] = useState<any[]>([]);
+
+  // Follow-up email state
+  const [followUpOpen, setFollowUpOpen] = useState(false);
+  const [followUpTo, setFollowUpTo] = useState("");
+  const [followUpCc, setFollowUpCc] = useState("");
+  const [followUpSubject, setFollowUpSubject] = useState("");
+  const [followUpBody, setFollowUpBody] = useState("");
+  const [sendingFollowUp, setSendingFollowUp] = useState(false);
 
   const fetchDeal = useCallback(async () => {
     if (!id) return;
@@ -544,6 +552,74 @@ const DealDetail = () => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setInvitingCompany(false);
+    }
+  };
+
+  // Follow-up email handlers
+  const openFollowUpDialog = () => {
+    const toEmail = deal.company_rep_email || deal.contact_email || "";
+    const ccEmail = deal.company_rep_email && deal.contact_email ? deal.contact_email : "";
+    setFollowUpTo(toEmail);
+    setFollowUpCc(ccEmail);
+    setFollowUpSubject(`Re: ${deal.name} - Follow Up`);
+
+    // Build a template body from AI summary data
+    const lines: string[] = [];
+    lines.push(`Dear ${deal.company_rep_name || deal.contact_name || "Team"},\n`);
+    lines.push(`Thank you for the information shared so far regarding ${deal.name}. Following our review, we wanted to follow up on a few items.\n`);
+
+    if (aiSummary?.concerns && Array.isArray(aiSummary.concerns) && aiSummary.concerns.length > 0) {
+      lines.push("We would appreciate some additional clarity on the following points:");
+      aiSummary.concerns.forEach((c: string) => lines.push(`  • ${c}`));
+      lines.push("");
+    }
+
+    if (aiSummary?.missing_data && Array.isArray(aiSummary.missing_data) && aiSummary.missing_data.length > 0) {
+      lines.push("Additionally, we are still looking for the following information:");
+      aiSummary.missing_data.forEach((d: string) => lines.push(`  • ${d}`));
+      lines.push("");
+    }
+
+    lines.push("Please let us know if you have any questions or if there is a convenient time to discuss.\n");
+    lines.push("Best regards,\nDCG Capital");
+
+    setFollowUpBody(lines.join("\n"));
+    setFollowUpOpen(true);
+  };
+
+  const handleSendFollowUp = async () => {
+    if (!followUpTo.trim()) return;
+    setSendingFollowUp(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+        body: {
+          to: followUpTo.trim(),
+          cc: followUpCc.trim() || undefined,
+          subject: followUpSubject,
+          body: followUpBody,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Link the sent email to this deal if we got an email ID back
+      if (data?.emailId && deal?.id) {
+        await supabase.from("deal_emails").insert({
+          deal_id: deal.id,
+          email_id: data.emailId,
+          linked_by: "manual",
+        });
+      }
+
+      toast({ title: "Email sent", description: `Follow-up sent to ${followUpTo}` });
+      setFollowUpOpen(false);
+      fetchRelated();
+    } catch (err: any) {
+      toast({ title: "Send failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSendingFollowUp(false);
     }
   };
 
@@ -1045,6 +1121,15 @@ const DealDetail = () => {
                           Updated {format(new Date(aiSummary.generated_at), "MMM d, h:mm a")}
                         </span>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={openFollowUpDialog}
+                        disabled={!aiSummary || !(deal.company_rep_email || deal.contact_email)}
+                      >
+                        <Send className="mr-1 h-3 w-3" />
+                        Send Follow-up
+                      </Button>
                       <Button size="sm" variant="outline" onClick={handleRefreshAiAnalysis} disabled={refreshingAi}>
                         {refreshingAi ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
                         Refresh
@@ -1069,6 +1154,67 @@ const DealDetail = () => {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Follow-up Email Dialog */}
+              <Dialog open={followUpOpen} onOpenChange={setFollowUpOpen}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="font-display flex items-center gap-2">
+                      <Send className="h-4 w-4 text-accent" />
+                      Send Follow-up Email
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <div className="grid gap-3 grid-cols-2">
+                      <div>
+                        <Label className="font-body text-xs text-muted-foreground">To</Label>
+                        <Input
+                          value={followUpTo}
+                          onChange={e => setFollowUpTo(e.target.value)}
+                          className="mt-1"
+                          placeholder="recipient@example.com"
+                        />
+                      </div>
+                      <div>
+                        <Label className="font-body text-xs text-muted-foreground">CC</Label>
+                        <Input
+                          value={followUpCc}
+                          onChange={e => setFollowUpCc(e.target.value)}
+                          className="mt-1"
+                          placeholder="cc@example.com"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="font-body text-xs text-muted-foreground">Subject</Label>
+                      <Input
+                        value={followUpSubject}
+                        onChange={e => setFollowUpSubject(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="font-body text-xs text-muted-foreground">Body</Label>
+                      <Textarea
+                        value={followUpBody}
+                        onChange={e => setFollowUpBody(e.target.value)}
+                        className="mt-1 min-h-[250px] font-body text-sm"
+                        rows={12}
+                      />
+                    </div>
+                    <p className="font-body text-[11px] text-muted-foreground">
+                      Sending from data@fitzcap.co via Microsoft Graph
+                    </p>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setFollowUpOpen(false)}>Cancel</Button>
+                      <Button onClick={handleSendFollowUp} disabled={sendingFollowUp || !followUpTo.trim()}>
+                        {sendingFollowUp ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Send className="mr-1 h-4 w-4" />}
+                        Send Email
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               {/* AI Concerns Card */}
               <Card className="border-destructive/20 bg-destructive/5">

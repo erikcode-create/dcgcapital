@@ -56,6 +56,7 @@ const formatCurrency = (value: number | null | undefined) => {
 const AdminPortal = () => {
   const { user, signOut } = useAuth();
   const [deals, setDeals] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [investors, setInvestors] = useState<any[]>([]);
   const [interests, setInterests] = useState<any[]>([]);
   const [allMessages, setAllMessages] = useState<any[]>([]);
@@ -100,6 +101,15 @@ const AdminPortal = () => {
       if (!roleMap[r.user_id]) roleMap[r.user_id] = [];
       roleMap[r.user_id].push(r.role);
     });
+
+    // Build full user list with roles for the Users tab
+    const userList = profiles.map((p: any) => ({
+      ...p,
+      roles: roleMap[p.id] || [],
+    }));
+    setAllUsers(userList);
+
+    // Keep investor list for assign dialog and other references
     const investorList = profiles.filter((p: any) => {
       const userRoles = roleMap[p.id] || [];
       return userRoles.includes("investor") || userRoles.length === 0;
@@ -265,6 +275,28 @@ const AdminPortal = () => {
     setResendingInvite(null);
   };
 
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    try {
+      // Remove existing roles for this user
+      const { error: deleteError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId);
+      if (deleteError) throw deleteError;
+
+      // Insert the new role
+      const { error: insertError } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: newRole as any });
+      if (insertError) throw insertError;
+
+      toast({ title: "Role updated", description: `User role changed to ${newRole}` });
+      fetchAll();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
   const getStageColor = (stage: string) => PIPELINE_STAGES.find(s => s.key === stage)?.color || "bg-muted text-muted-foreground border-border";
   const getStageLabel = (stage: string) => PIPELINE_STAGES.find(s => s.key === stage)?.label || stage;
 
@@ -319,7 +351,7 @@ const AdminPortal = () => {
             { label: "Equity", value: formatCurrency(getCategoryValue("equity")), icon: Briefcase },
             { label: "Debt", value: formatCurrency(getCategoryValue("debt")), icon: TrendingUp },
             { label: "Revenue Seeking", value: formatCurrency(getCategoryValue("revenue_seeking")), icon: Building2 },
-            { label: "Investors", value: investors.length, icon: Users },
+            { label: "Users", value: allUsers.length, icon: Users },
           ].map((stat, i) => (
             <Card key={i} className={`border-border ${stat.accent ? "bg-gradient-royal" : ""}`}>
               <CardContent className="flex items-center gap-4 p-5">
@@ -338,7 +370,7 @@ const AdminPortal = () => {
             <TabsList>
               <TabsTrigger value="pipeline" className="font-body">Pipeline</TabsTrigger>
               <TabsTrigger value="deals" className="font-body">All Deals</TabsTrigger>
-              <TabsTrigger value="investors" className="font-body">Investors</TabsTrigger>
+              <TabsTrigger value="users" className="font-body">Users</TabsTrigger>
               <TabsTrigger value="interest" className="font-body">Interest</TabsTrigger>
               <TabsTrigger value="messages" className="font-body">Messages</TabsTrigger>
               <TabsTrigger value="nda" className="font-body">NDA</TabsTrigger>
@@ -575,67 +607,87 @@ const AdminPortal = () => {
             </Card>
           </TabsContent>
 
-          {/* Investors */}
-          <TabsContent value="investors">
+          {/* Users */}
+          <TabsContent value="users">
             <div className="flex justify-end mb-4">
               <Dialog open={createInvestorOpen} onOpenChange={setCreateInvestorOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="bg-gradient-royal text-accent-foreground"><Plus className="mr-2 h-4 w-4" />Create Investor</Button>
+                  <Button size="sm" className="bg-gradient-royal text-accent-foreground"><Plus className="mr-2 h-4 w-4" />Create User</Button>
                 </DialogTrigger>
                 <DialogContent>
-                  <DialogHeader><DialogTitle className="font-display">Create Investor Account</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle className="font-display">Create User Account</DialogTitle></DialogHeader>
                   <form onSubmit={handleCreateInvestor} className="space-y-4">
                     <div><Label>Email *</Label><Input type="email" value={newInvestor.email} onChange={(e) => setNewInvestor({ ...newInvestor, email: e.target.value })} required className="mt-1" /></div>
                     <div><Label>Full Name *</Label><Input value={newInvestor.full_name} onChange={(e) => setNewInvestor({ ...newInvestor, full_name: e.target.value })} required className="mt-1" /></div>
                     <div><Label>Company</Label><Input value={newInvestor.company} onChange={(e) => setNewInvestor({ ...newInvestor, company: e.target.value })} className="mt-1" /></div>
                     <div><Label>Phone</Label><Input value={newInvestor.phone} onChange={(e) => setNewInvestor({ ...newInvestor, phone: e.target.value })} className="mt-1" /></div>
                     <Button type="submit" className="w-full bg-gradient-royal text-accent-foreground" disabled={creatingInvestor}>
-                      {creatingInvestor ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</> : "Create Investor"}
+                      {creatingInvestor ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</> : "Create User"}
                     </Button>
                   </form>
                 </DialogContent>
               </Dialog>
             </div>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {investors.map((inv) => (
-                <Card key={inv.id} className="border-border">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent font-body text-sm font-semibold">
-                        {(inv.full_name || "?")[0]}
+              {allUsers.map((usr) => {
+                const primaryRole = usr.roles[0] || "investor";
+                const isInvestor = usr.roles.includes("investor") || usr.roles.length === 0;
+                return (
+                  <Card key={usr.id} className="border-border">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent font-body text-sm font-semibold">
+                          {(usr.full_name || "?")[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-body text-sm font-medium">{usr.full_name || "—"}</p>
+                          <p className="font-body text-xs text-muted-foreground">{usr.email}</p>
+                          {usr.company && <p className="font-body text-xs text-muted-foreground">{usr.company}</p>}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-body text-sm font-medium">{inv.full_name || "—"}</p>
-                        <p className="font-body text-xs text-muted-foreground">{inv.email}</p>
-                        {inv.company && <p className="font-body text-xs text-muted-foreground">{inv.company}</p>}
+                      {/* Role selector */}
+                      <div className="mt-3">
+                        <Label className="font-body text-xs text-muted-foreground">Role</Label>
+                        <Select value={primaryRole} onValueChange={(v) => handleRoleChange(usr.id, v)}>
+                          <SelectTrigger className="mt-1 h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="investor">Investor</SelectItem>
+                            <SelectItem value="company">Company</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    </div>
-                    <div className="mt-3 flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 text-xs"
-                        onClick={() => navigate(`/portal?viewAs=${inv.id}`)}
-                      >
-                        <Eye className="mr-1 h-3 w-3" /> View as Investor
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 text-xs"
-                        disabled={resendingInvite === inv.id}
-                        onClick={() => handleResendInvite(inv)}
-                      >
-                        {resendingInvite === inv.id ? (
-                          <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Sending...</>
-                        ) : (
-                          <><Send className="mr-1 h-3 w-3" /> Resend Invite</>
+                      <div className="mt-3 flex gap-2">
+                        {isInvestor && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 text-xs"
+                            onClick={() => navigate(`/portal?viewAs=${usr.id}`)}
+                          >
+                            <Eye className="mr-1 h-3 w-3" /> View as Investor
+                          </Button>
                         )}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 text-xs"
+                          disabled={resendingInvite === usr.id}
+                          onClick={() => handleResendInvite(usr)}
+                        >
+                          {resendingInvite === usr.id ? (
+                            <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Sending...</>
+                          ) : (
+                            <><Send className="mr-1 h-3 w-3" /> Resend Invite</>
+                          )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </TabsContent>
 

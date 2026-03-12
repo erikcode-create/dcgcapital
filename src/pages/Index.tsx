@@ -2,7 +2,7 @@
 // ABOUTME: Features hero, approach pillars, capital solutions, target profile, comparison, about, and deal submission.
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Link, Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,10 +17,6 @@ import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const isPreviewMode = () => {
-  const hostname = window.location.hostname;
-  return hostname.includes("preview") && hostname.endsWith(".lovable.app");
-};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -76,9 +72,6 @@ const Index = () => {
   const [expandedSolution, setExpandedSolution] = useState<number | null>(null);
   const { toast } = useToast();
 
-  if (isPreviewMode()) {
-    return <Navigate to="/admin" replace />;
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

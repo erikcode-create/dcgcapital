@@ -590,6 +590,54 @@ export type Database = {
           },
         ]
       }
+      investor_preferences: {
+        Row: {
+          check_size: string | null
+          created_at: string
+          ebitda_range: string | null
+          enterprise_value_range: string | null
+          id: string
+          investor_id: string
+          preferred_categories: string[] | null
+          preferred_deal_types: string[] | null
+          preferred_regions: string[] | null
+          preferred_sectors: string[] | null
+          revenue_size: string | null
+          revenue_stage_preference: string | null
+          updated_at: string
+        }
+        Insert: {
+          check_size?: string | null
+          created_at?: string
+          ebitda_range?: string | null
+          enterprise_value_range?: string | null
+          id?: string
+          investor_id: string
+          preferred_categories?: string[] | null
+          preferred_deal_types?: string[] | null
+          preferred_regions?: string[] | null
+          preferred_sectors?: string[] | null
+          revenue_size?: string | null
+          revenue_stage_preference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          check_size?: string | null
+          created_at?: string
+          ebitda_range?: string | null
+          enterprise_value_range?: string | null
+          id?: string
+          investor_id?: string
+          preferred_categories?: string[] | null
+          preferred_deal_types?: string[] | null
+          preferred_regions?: string[] | null
+          preferred_sectors?: string[] | null
+          revenue_size?: string | null
+          revenue_stage_preference?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string

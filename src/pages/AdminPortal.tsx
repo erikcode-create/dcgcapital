@@ -348,7 +348,7 @@ const AdminPortal = () => {
             <TabsList>
               <TabsTrigger value="pipeline" className="font-body">Pipeline</TabsTrigger>
               <TabsTrigger value="deals" className="font-body">All Deals</TabsTrigger>
-              <TabsTrigger value="investors" className="font-body">Investors</TabsTrigger>
+              <TabsTrigger value="users" className="font-body">Users</TabsTrigger>
               <TabsTrigger value="interest" className="font-body">Interest</TabsTrigger>
               <TabsTrigger value="messages" className="font-body">Messages</TabsTrigger>
               <TabsTrigger value="nda" className="font-body">NDA</TabsTrigger>

@@ -555,6 +555,74 @@ const DealDetail = () => {
     }
   };
 
+  // Follow-up email handlers
+  const openFollowUpDialog = () => {
+    const toEmail = deal.company_rep_email || deal.contact_email || "";
+    const ccEmail = deal.company_rep_email && deal.contact_email ? deal.contact_email : "";
+    setFollowUpTo(toEmail);
+    setFollowUpCc(ccEmail);
+    setFollowUpSubject(`Re: ${deal.name} - Follow Up`);
+
+    // Build a template body from AI summary data
+    const lines: string[] = [];
+    lines.push(`Dear ${deal.company_rep_name || deal.contact_name || "Team"},\n`);
+    lines.push(`Thank you for the information shared so far regarding ${deal.name}. Following our review, we wanted to follow up on a few items.\n`);
+
+    if (aiSummary?.concerns && Array.isArray(aiSummary.concerns) && aiSummary.concerns.length > 0) {
+      lines.push("We would appreciate some additional clarity on the following points:");
+      aiSummary.concerns.forEach((c: string) => lines.push(`  • ${c}`));
+      lines.push("");
+    }
+
+    if (aiSummary?.missing_data && Array.isArray(aiSummary.missing_data) && aiSummary.missing_data.length > 0) {
+      lines.push("Additionally, we are still looking for the following information:");
+      aiSummary.missing_data.forEach((d: string) => lines.push(`  • ${d}`));
+      lines.push("");
+    }
+
+    lines.push("Please let us know if you have any questions or if there is a convenient time to discuss.\n");
+    lines.push("Best regards,\nDCG Capital");
+
+    setFollowUpBody(lines.join("\n"));
+    setFollowUpOpen(true);
+  };
+
+  const handleSendFollowUp = async () => {
+    if (!followUpTo.trim()) return;
+    setSendingFollowUp(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+        body: {
+          to: followUpTo.trim(),
+          cc: followUpCc.trim() || undefined,
+          subject: followUpSubject,
+          body: followUpBody,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Link the sent email to this deal if we got an email ID back
+      if (data?.emailId && deal?.id) {
+        await supabase.from("deal_emails").insert({
+          deal_id: deal.id,
+          email_id: data.emailId,
+          linked_by: "manual",
+        });
+      }
+
+      toast({ title: "Email sent", description: `Follow-up sent to ${followUpTo}` });
+      setFollowUpOpen(false);
+      fetchRelated();
+    } catch (err: any) {
+      toast({ title: "Send failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSendingFollowUp(false);
+    }
+  };
+
   // Data request progress for this deal
   const dataRequestTotal = dataRequestItems.length;
   const dataRequestCompleted = dataRequestItems.filter(

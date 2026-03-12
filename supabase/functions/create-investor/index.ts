@@ -164,12 +164,12 @@ serve(async (req) => {
       </p>
 
       <p style="color:#4a4158;font-size:14px;line-height:1.6;">
-        To sign in, visit the portal and enter your email address (<strong>${email}</strong>) along with the password provided to you.
+        To get started, please click the button below to set your password and access the portal.
       </p>
 
       <div style="text-align:center;margin:32px 0;">
-        <a href="${PORTAL_URL}" style="display:inline-block;background:linear-gradient(135deg,#3b1a6e,#1f0e3d);color:#f0e8d8;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:500;">
-          Access Investor Portal
+        <a href="${inviteUrl}" style="display:inline-block;background:linear-gradient(135deg,#3b1a6e,#1f0e3d);color:#f0e8d8;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:500;">
+          Set Your Password
         </a>
       </div>
 

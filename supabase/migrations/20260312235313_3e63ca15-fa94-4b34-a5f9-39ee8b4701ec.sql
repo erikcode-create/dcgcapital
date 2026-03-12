@@ -1,0 +1,1 @@
+ALTER TABLE public.deals ADD COLUMN revenue_stage text DEFAULT 'post_revenue';

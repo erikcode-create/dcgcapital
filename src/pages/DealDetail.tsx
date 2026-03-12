@@ -872,21 +872,41 @@ const DealDetail = () => {
 
               <Card className="border-border">
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="font-display text-base">Contact</CardTitle>
+                  <CardTitle className="font-display text-base">Contacts</CardTitle>
                   {!editing && <Button size="sm" variant="ghost" onClick={() => setEditing(true)}><Edit className="mr-1 h-3 w-3" />Edit</Button>}
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {editing ? (
-                    <>
-                      <div><Label className="font-body text-xs text-muted-foreground">Contact Name</Label><Input value={editData.contact_name || ""} onChange={e => setEditData({...editData, contact_name: e.target.value})} className="mt-1" placeholder="John Smith (Banker)" /></div>
-                      <div><Label className="font-body text-xs text-muted-foreground">Contact Email</Label><Input type="email" value={editData.contact_email || ""} onChange={e => setEditData({...editData, contact_email: e.target.value})} className="mt-1" /></div>
-                    </>
-                  ) : (
-                    <>
-                      <div><p className="font-body text-xs text-muted-foreground">Contact Name</p><p className="font-body text-sm text-foreground">{deal.contact_name || "—"}</p></div>
-                      <div><p className="font-body text-xs text-muted-foreground">Contact Email</p><p className="font-body text-sm text-foreground">{deal.contact_email || "—"}</p></div>
-                    </>
-                  )}
+                <CardContent className="space-y-4">
+                  {/* Intermediary / Banker */}
+                  <div>
+                    <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Intermediary / Banker</p>
+                    {editing ? (
+                      <div className="space-y-2">
+                        <div><Label className="font-body text-xs text-muted-foreground">Name</Label><Input value={editData.contact_name || ""} onChange={e => setEditData({...editData, contact_name: e.target.value})} className="mt-1" placeholder="Banker name" /></div>
+                        <div><Label className="font-body text-xs text-muted-foreground">Email</Label><Input type="email" value={editData.contact_email || ""} onChange={e => setEditData({...editData, contact_email: e.target.value})} className="mt-1" /></div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <div><p className="font-body text-xs text-muted-foreground">Name</p><p className="font-body text-sm text-foreground">{deal.contact_name || "—"}</p></div>
+                        <div><p className="font-body text-xs text-muted-foreground">Email</p><p className="font-body text-sm text-foreground">{deal.contact_email || "—"}</p></div>
+                      </div>
+                    )}
+                  </div>
+                  <Separator />
+                  {/* Company Representative */}
+                  <div>
+                    <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Company Representative</p>
+                    {editing ? (
+                      <div className="space-y-2">
+                        <div><Label className="font-body text-xs text-muted-foreground">Name</Label><Input value={editData.company_rep_name || ""} onChange={e => setEditData({...editData, company_rep_name: e.target.value})} className="mt-1" placeholder="CEO, CFO, etc." /></div>
+                        <div><Label className="font-body text-xs text-muted-foreground">Email</Label><Input type="email" value={editData.company_rep_email || ""} onChange={e => setEditData({...editData, company_rep_email: e.target.value})} className="mt-1" /></div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <div><p className="font-body text-xs text-muted-foreground">Name</p><p className="font-body text-sm text-foreground">{deal.company_rep_name || "—"}</p></div>
+                        <div><p className="font-body text-xs text-muted-foreground">Email</p><p className="font-body text-sm text-foreground">{deal.company_rep_email || "—"}</p></div>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 

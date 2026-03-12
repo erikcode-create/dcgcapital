@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 const MAILBOX = "data@fitzcap.co";
-const PORTAL_URL = "https://dcgcapital.lovable.app/login";
+const PORTAL_URL = "https://dcgcapital.lovable.app";
 
 async function getAccessToken(): Promise<string> {
   const tenantId = Deno.env.get("AZURE_TENANT_ID");
@@ -89,22 +89,42 @@ serve(async (req) => {
       });
     }
 
-    const { email, password, full_name, company, phone } = await req.json();
+    const { email, full_name, company, phone } = await req.json();
 
-    if (!email || !password) {
-      return new Response(JSON.stringify({ error: "Email and password are required" }), {
+    if (!email) {
+      return new Response(JSON.stringify({ error: "Email is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Create the user with admin API (auto-confirms email)
+    // Create the user with admin API (no password — investor sets their own via invite link)
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
-      password,
       email_confirm: true,
       user_metadata: { full_name },
     });
+
+    if (createError) {
+      return new Response(JSON.stringify({ error: createError.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Generate a recovery link so the investor can set their own password
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: 'recovery',
+      email,
+      options: { redirectTo: PORTAL_URL + '/reset-password' },
+    });
+
+    if (linkError) {
+      console.error("Failed to generate recovery link:", linkError);
+    }
+
+    // Extract the token-bearing URL from the generated link
+    const inviteUrl = linkData?.properties?.action_link || PORTAL_URL + '/login';
 
     if (createError) {
       return new Response(JSON.stringify({ error: createError.message }), {
@@ -144,12 +164,12 @@ serve(async (req) => {
       </p>
 
       <p style="color:#4a4158;font-size:14px;line-height:1.6;">
-        To sign in, visit the portal and enter your email address (<strong>${email}</strong>) along with the password provided to you.
+        To get started, please click the button below to set your password and access the portal.
       </p>
 
       <div style="text-align:center;margin:32px 0;">
-        <a href="${PORTAL_URL}" style="display:inline-block;background:linear-gradient(135deg,#3b1a6e,#1f0e3d);color:#f0e8d8;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:500;">
-          Access Investor Portal
+        <a href="${inviteUrl}" style="display:inline-block;background:linear-gradient(135deg,#3b1a6e,#1f0e3d);color:#f0e8d8;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:500;">
+          Set Your Password
         </a>
       </div>
 
@@ -200,7 +220,7 @@ serve(async (req) => {
         from_name: "Fitzpatrick Capital Partners",
         to_addresses: [{ address: email }],
         body_html: emailHtml,
-        body_text: `Dear ${displayName}, you have been invited to the Fitzpatrick Capital Partners Investor Portal. Email: ${email}. Log in at ${PORTAL_URL}`,
+        body_text: `Dear ${displayName}, you have been invited to the Fitzpatrick Capital Partners Investor Portal. Set your password at ${inviteUrl}`,
         body_preview: `You have been invited to the Fitzpatrick Capital Partners Investor Portal.`,
         sent_at: new Date().toISOString(),
         received_at: new Date().toISOString(),

@@ -222,8 +222,10 @@ Extract all deal information you can find from the email and attachments.`,
   "revenue": numeric value in dollars or null,
   "investment_amount": numeric value in dollars or null,
   "target_return": "Target return as string or null",
-  "contact_name": "Key contact name from the email sender or content",
-  "contact_email": "Contact email from the sender",
+  "contact_name": "The intermediary or banker who sent/sourced the deal (usually the email sender)",
+  "contact_email": "The intermediary/banker email (usually the email sender address)",
+  "company_rep_name": "The representative at the target company (CEO, CFO, etc.) if mentioned in the content, or null",
+  "company_rep_email": "The company representative's email if mentioned, or null",
   "notes": "Additional key points, investment thesis highlights, risks, summary of the opportunity",
   "category": "One of: equity, debt, revenue_seeking — based on the nature of the deal"
 }

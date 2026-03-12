@@ -264,7 +264,7 @@ Deno.serve(async (req) => {
       </p>
 
       <div style="text-align:center;margin:32px 0;">
-        <a href="${magicLinkUrl}" style="display:inline-block;background:linear-gradient(135deg,#3b1a6e,#1f0e3d);color:#f0e8d8;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:500;">
+        <a href="${portalUrl}" style="display:inline-block;background:linear-gradient(135deg,#3b1a6e,#1f0e3d);color:#f0e8d8;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:500;">
           Access Data Room
         </a>
       </div>

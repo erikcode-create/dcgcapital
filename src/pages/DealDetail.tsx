@@ -668,6 +668,19 @@ const DealDetail = () => {
             </SelectContent>
           </Select>
 
+          <Select value={deal.revenue_stage || "post_revenue"} onValueChange={async (v) => {
+            const { error } = await supabase.from("deals").update({ revenue_stage: v }).eq("id", deal.id);
+            if (!error) {
+              setDeal({ ...deal, revenue_stage: v });
+              setEditData({ ...editData, revenue_stage: v });
+            }
+          }}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {REVENUE_STAGES.map(r => <SelectItem key={r.key} value={r.key}>{r.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
           <div className="flex items-center gap-1">
             {PIPELINE_STAGES.map((stage, idx) => (
               <button

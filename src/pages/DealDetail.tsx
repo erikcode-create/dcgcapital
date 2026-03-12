@@ -1155,6 +1155,67 @@ const DealDetail = () => {
                 </CardContent>
               </Card>
 
+              {/* Follow-up Email Dialog */}
+              <Dialog open={followUpOpen} onOpenChange={setFollowUpOpen}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="font-display flex items-center gap-2">
+                      <Send className="h-4 w-4 text-accent" />
+                      Send Follow-up Email
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <div className="grid gap-3 grid-cols-2">
+                      <div>
+                        <Label className="font-body text-xs text-muted-foreground">To</Label>
+                        <Input
+                          value={followUpTo}
+                          onChange={e => setFollowUpTo(e.target.value)}
+                          className="mt-1"
+                          placeholder="recipient@example.com"
+                        />
+                      </div>
+                      <div>
+                        <Label className="font-body text-xs text-muted-foreground">CC</Label>
+                        <Input
+                          value={followUpCc}
+                          onChange={e => setFollowUpCc(e.target.value)}
+                          className="mt-1"
+                          placeholder="cc@example.com"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="font-body text-xs text-muted-foreground">Subject</Label>
+                      <Input
+                        value={followUpSubject}
+                        onChange={e => setFollowUpSubject(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="font-body text-xs text-muted-foreground">Body</Label>
+                      <Textarea
+                        value={followUpBody}
+                        onChange={e => setFollowUpBody(e.target.value)}
+                        className="mt-1 min-h-[250px] font-body text-sm"
+                        rows={12}
+                      />
+                    </div>
+                    <p className="font-body text-[11px] text-muted-foreground">
+                      Sending from data@fitzcap.co via Microsoft Graph
+                    </p>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setFollowUpOpen(false)}>Cancel</Button>
+                      <Button onClick={handleSendFollowUp} disabled={sendingFollowUp || !followUpTo.trim()}>
+                        {sendingFollowUp ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Send className="mr-1 h-4 w-4" />}
+                        Send Email
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
               {/* AI Concerns Card */}
               <Card className="border-destructive/20 bg-destructive/5">
                 <CardHeader className="pb-2">

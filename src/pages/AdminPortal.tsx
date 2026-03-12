@@ -351,7 +351,7 @@ const AdminPortal = () => {
             { label: "Equity", value: formatCurrency(getCategoryValue("equity")), icon: Briefcase },
             { label: "Debt", value: formatCurrency(getCategoryValue("debt")), icon: TrendingUp },
             { label: "Revenue Seeking", value: formatCurrency(getCategoryValue("revenue_seeking")), icon: Building2 },
-            { label: "Investors", value: investors.length, icon: Users },
+            { label: "Users", value: allUsers.length, icon: Users },
           ].map((stat, i) => (
             <Card key={i} className={`border-border ${stat.accent ? "bg-gradient-royal" : ""}`}>
               <CardContent className="flex items-center gap-4 p-5">

@@ -1,3 +1,6 @@
+// ABOUTME: Login page with email/password authentication and TOTP MFA verification.
+// ABOUTME: Handles password sign-in, MFA challenge flow, and redirects based on user role.
+
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Shield, Mail, CheckCircle } from "lucide-react";
+import { ArrowLeft, Shield, Lock, KeyRound } from "lucide-react";
 
 // Detect Lovable preview environment to skip auth
 const isPreviewMode = () => {
@@ -16,8 +19,11 @@ const isPreviewMode = () => {
 
 const Login = () => {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaFactorId, setMfaFactorId] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -28,55 +34,110 @@ const Login = () => {
     }
   }, [navigate]);
 
-  const handleMagicLink = async (e: React.FormEvent) => {
+  // On mount, check if user already has a session and redirect
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await redirectByRole(session.user.id);
+      }
+    };
+    checkSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const redirectByRole = async (userId: string) => {
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .single();
+
+    if (roleData?.role === "admin") {
+      navigate("/admin");
+    } else if (roleData?.role === "company") {
+      navigate("/company");
+    } else {
+      navigate("/portal");
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.origin + "/login",
-      },
-    });
-    setLoading(false);
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
     if (error) {
-      if (error.message.includes("Signups not allowed")) {
+      setLoading(false);
+      if (error.message.includes("Invalid login credentials")) {
         toast({
-          title: "Access denied",
-          description: "You don't have an account. Please contact an admin to get invited.",
+          title: "Invalid credentials",
+          description: "Please check your email and password.",
           variant: "destructive",
         });
       } else {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       }
-    } else {
-      setMagicLinkSent(true);
+      return;
     }
-  };
 
-  // Check if user just arrived via magic link (session will be set by onAuthStateChange)
-  // AuthContext handles session — we just need to redirect once authenticated
-  const checkSessionAndRedirect = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .single();
+    // Check if MFA is enrolled
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const totpFactors = factors?.totp || [];
+    const verifiedFactor = totpFactors.find(f => f.status === "verified");
 
-      if (roleData?.role === "admin") {
-        navigate("/admin");
-      } else if (roleData?.role === "company") {
-        navigate("/company");
-      } else {
-        navigate("/portal");
+    if (verifiedFactor) {
+      // MFA is enrolled — need to verify
+      setMfaFactorId(verifiedFactor.id);
+      setMfaRequired(true);
+      setLoading(false);
+    } else {
+      // No MFA — redirect directly
+      setLoading(false);
+      if (data.session) {
+        await redirectByRole(data.session.user.id);
       }
     }
   };
 
-  // On mount, check if returning from magic link
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { checkSessionAndRedirect(); }, []);
+  const handleMfaVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({
+      factorId: mfaFactorId,
+    });
+
+    if (challengeError) {
+      setLoading(false);
+      toast({ title: "MFA Error", description: challengeError.message, variant: "destructive" });
+      return;
+    }
+
+    const { data: verifyData, error: verifyError } = await supabase.auth.mfa.verify({
+      factorId: mfaFactorId,
+      challengeId: challenge.id,
+      code: mfaCode,
+    });
+
+    setLoading(false);
+
+    if (verifyError) {
+      toast({
+        title: "Invalid code",
+        description: "The verification code is incorrect. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // MFA verified — redirect by role
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      await redirectByRole(session.user.id);
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6">
@@ -99,27 +160,49 @@ const Login = () => {
         </div>
 
         <Card className="border-border bg-card backdrop-blur-sm">
-          {magicLinkSent ? (
+          {mfaRequired ? (
             <>
-              <CardHeader className="text-center">
+              <CardHeader>
                 <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
-                  <CheckCircle className="h-6 w-6 text-accent" />
+                  <KeyRound className="h-6 w-6 text-accent" />
                 </div>
-                <CardTitle className="font-display text-xl text-foreground">Check your email</CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  We've sent a sign-in link to <span className="font-medium text-foreground">{email}</span>
+                <CardTitle className="font-display text-xl text-center text-foreground">Two-Factor Authentication</CardTitle>
+                <CardDescription className="text-center text-muted-foreground">
+                  Enter the 6-digit code from your authenticator app
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="font-body text-center text-sm text-muted-foreground">
-                  Click the link in your email to sign in. The link expires in 1 hour.
-                </p>
+              <CardContent>
+                <form onSubmit={handleMfaVerify} className="space-y-4">
+                  <div>
+                    <Label className="text-foreground/70">Verification Code</Label>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      value={mfaCode}
+                      onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
+                      placeholder="000000"
+                      required
+                      autoFocus
+                      className="mt-1 border-border bg-secondary text-foreground text-center text-lg tracking-widest"
+                    />
+                  </div>
+                  <Button type="submit" disabled={loading || mfaCode.length !== 6} className="w-full bg-gradient-royal text-accent-foreground">
+                    {loading ? "Verifying..." : "Verify"}
+                  </Button>
+                </form>
                 <button
                   type="button"
-                  onClick={() => setMagicLinkSent(false)}
-                  className="font-body w-full text-center text-sm text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setMfaRequired(false);
+                    setMfaCode("");
+                    setMfaFactorId("");
+                    supabase.auth.signOut();
+                  }}
+                  className="font-body mt-4 w-full text-center text-sm text-muted-foreground hover:text-foreground"
                 >
-                  Use a different email
+                  Cancel and sign in with a different account
                 </button>
               </CardContent>
             </>
@@ -128,11 +211,11 @@ const Login = () => {
               <CardHeader>
                 <CardTitle className="font-display text-xl text-foreground">Sign In</CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  Enter your email to receive a secure sign-in link
+                  Enter your credentials to access the portal
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleMagicLink} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4">
                   <div>
                     <Label className="text-foreground/70">Email</Label>
                     <Input
@@ -145,9 +228,25 @@ const Login = () => {
                       className="mt-1 border-border bg-secondary text-foreground"
                     />
                   </div>
+                  <div>
+                    <Label className="text-foreground/70">Password</Label>
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      className="mt-1 border-border bg-secondary text-foreground"
+                    />
+                  </div>
+                  <div className="flex justify-end">
+                    <Link to="/forgot-password" className="font-body text-sm text-muted-foreground hover:text-foreground">
+                      Forgot password?
+                    </Link>
+                  </div>
                   <Button type="submit" disabled={loading} className="w-full bg-gradient-royal text-accent-foreground">
-                    <Mail className="mr-2 h-4 w-4" />
-                    {loading ? "Sending..." : "Send Magic Link"}
+                    <Lock className="mr-2 h-4 w-4" />
+                    {loading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
                 <p className="font-body mt-6 text-center text-xs text-muted-foreground">

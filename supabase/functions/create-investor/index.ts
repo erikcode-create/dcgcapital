@@ -144,7 +144,7 @@ serve(async (req) => {
       </p>
 
       <p style="color:#4a4158;font-size:14px;line-height:1.6;">
-        To sign in, simply visit the portal and enter your email address (<strong>${email}</strong>). You will receive a secure magic link — no password needed.
+        To sign in, visit the portal and enter your email address (<strong>${email}</strong>) along with the password provided to you.
       </p>
 
       <div style="text-align:center;margin:32px 0;">

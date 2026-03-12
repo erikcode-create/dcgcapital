@@ -282,7 +282,7 @@ Deno.serve(async (req) => {
       </div>
 
       <p style="color:#6b5f7a;font-size:13px;line-height:1.5;">
-        This link will sign you in automatically. If you have any questions about the requested documents, please reply to this email.
+        Click the button above to access the data room. Sign in with your email and the password provided to you. If you have any questions about the requested documents, please reply to this email.
       </p>
 
       <hr style="border:none;border-top:1px solid #e8e0d6;margin:32px 0;" />

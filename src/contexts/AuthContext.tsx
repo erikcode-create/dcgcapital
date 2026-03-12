@@ -1,12 +1,8 @@
+// ABOUTME: Provides authentication context (user, session, role, profile) to the app.
+// ABOUTME: Fetches user role and profile from the database on auth state changes.
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-
-const isPreviewMode = () => {
-  const hostname = window.location.hostname;
-  return hostname.endsWith(".lovableproject.com") || 
-         (hostname.endsWith(".lovable.app") && hostname.includes("preview"));
-};
 
 type UserRole = "admin" | "investor" | "company";
 

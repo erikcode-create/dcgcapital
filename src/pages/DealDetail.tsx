@@ -747,6 +747,126 @@ const DealDetail = () => {
                       <span className="font-body text-sm font-semibold text-accent">{(deal.enterprise_value / deal.ebitda).toFixed(1)}x</span>
                     </div>
                   )}
+
+                  {/* Custom Metrics */}
+                  {(dealMetrics.length > 0 || editing) && (
+                    <div className="mt-4 pt-3 border-t border-border">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider">Custom Metrics</p>
+                      </div>
+                      <div className="space-y-2">
+                        {dealMetrics.map((metric: any) => (
+                          <div key={metric.id} className="flex items-center justify-between group">
+                            <span className="font-body text-sm text-muted-foreground">{metric.label}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-display text-sm font-semibold text-foreground">
+                                {formatMetricValue(metric.value, metric.display_format)}
+                              </span>
+                              {editing && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => handleDeleteMetric(metric.id)}
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add metric form — always visible */}
+                      <div className="mt-3 flex items-end gap-2">
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Metric label..."
+                            value={newMetricLabel}
+                            onChange={e => setNewMetricLabel(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div className="w-[120px]">
+                          <Input
+                            type="number"
+                            placeholder="Value"
+                            value={newMetricValue}
+                            onChange={e => setNewMetricValue(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <Select value={newMetricFormat} onValueChange={setNewMetricFormat}>
+                          <SelectTrigger className="w-[100px] h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="currency">Currency</SelectItem>
+                            <SelectItem value="percentage">Percentage</SelectItem>
+                            <SelectItem value="multiple">Multiple</SelectItem>
+                            <SelectItem value="number">Number</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8"
+                          onClick={handleAddMetric}
+                          disabled={!newMetricLabel.trim() || addingMetric}
+                        >
+                          {addingMetric ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Show add metric prompt when no custom metrics and not editing */}
+                  {dealMetrics.length === 0 && !editing && (
+                    <div className="mt-4 pt-3 border-t border-border">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider">Custom Metrics</p>
+                      </div>
+                      <div className="mt-2 flex items-end gap-2">
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Metric label..."
+                            value={newMetricLabel}
+                            onChange={e => setNewMetricLabel(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div className="w-[120px]">
+                          <Input
+                            type="number"
+                            placeholder="Value"
+                            value={newMetricValue}
+                            onChange={e => setNewMetricValue(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <Select value={newMetricFormat} onValueChange={setNewMetricFormat}>
+                          <SelectTrigger className="w-[100px] h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="currency">Currency</SelectItem>
+                            <SelectItem value="percentage">Percentage</SelectItem>
+                            <SelectItem value="multiple">Multiple</SelectItem>
+                            <SelectItem value="number">Number</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8"
+                          onClick={handleAddMetric}
+                          disabled={!newMetricLabel.trim() || addingMetric}
+                        >
+                          {addingMetric ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

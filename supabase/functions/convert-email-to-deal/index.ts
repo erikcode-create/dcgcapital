@@ -276,6 +276,20 @@ Return ONLY the JSON object, no markdown, no code fences.`,
       category: dealCategory,
     };
 
+    // Check if a deal already exists for this source email to prevent duplicates
+    const { data: existingDeal } = await supabase
+      .from("deals")
+      .select("*")
+      .eq("source_email_id", email_id)
+      .maybeSingle();
+
+    if (existingDeal) {
+      return new Response(JSON.stringify({ success: true, deal: existingDeal, duplicate: true, message: "Deal already exists for this email" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: newDeal, error: insertError } = await supabase
       .from("deals")
       .insert(dealPayload)

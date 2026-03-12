@@ -228,7 +228,7 @@ const InvestorPortal = () => {
       <main className="container mx-auto px-6 py-10">
         <div className="mb-10">
           <h1 className="font-display text-3xl font-light text-foreground">
-            Welcome back, <span className="text-gradient-royal font-medium">{(viewedProfile?.full_name || profile?.full_name || "Investor").split(" ")[0]}</span>
+            Welcome back, <span className="text-primary font-medium">{(viewedProfile?.full_name || profile?.full_name || "Investor").split(" ")[0]}</span>
           </h1>
           <p className="font-body mt-2 text-muted-foreground">Review your assigned deals and opportunities below.</p>
         </div>

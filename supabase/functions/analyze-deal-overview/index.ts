@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify caller identity - allow preview mode (no valid JWT) to proceed
+    // Verify caller is an authenticated admin
     const anonClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -37,21 +37,24 @@ Deno.serve(async (req) => {
 
     const serviceClient = createClient(supabaseUrl, serviceRoleKey);
 
-    if (claimsData?.claims) {
-      // Valid JWT - verify admin role
-      const userId = claimsData.claims.sub as string;
-      const { data: isAdmin } = await serviceClient.rpc("has_role", {
-        _user_id: userId,
-        _role: "admin",
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-      if (!isAdmin) {
-        return new Response(JSON.stringify({ error: "Forbidden: Admin only" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
     }
-    // If no valid JWT (e.g. preview mode with anon key), allow through
+
+    const userId = claimsData.claims.sub as string;
+    const { data: isAdmin } = await serviceClient.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden: Admin only" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { deal_id } = await req.json();
     if (!deal_id) {

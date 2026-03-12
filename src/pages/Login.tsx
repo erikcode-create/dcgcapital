@@ -11,12 +11,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Shield, Lock, KeyRound } from "lucide-react";
 
-// Detect Lovable preview environment to skip auth
-const isPreviewMode = () => {
-  const hostname = window.location.hostname;
-  return hostname.endsWith(".lovableproject.com") || (hostname.endsWith(".lovable.app") && hostname.includes("preview"));
-};
-
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,13 +20,6 @@ const Login = () => {
   const [mfaFactorId, setMfaFactorId] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // In preview mode, skip login and go straight to admin
-  useEffect(() => {
-    if (isPreviewMode()) {
-      navigate("/admin", { replace: true });
-    }
-  }, [navigate]);
 
   // On mount, check if user already has a session and redirect
   useEffect(() => {

@@ -66,7 +66,7 @@ serve(async (req) => {
     const token = authHeader.slice("Bearer ".length);
     const isProjectKey = token === supabaseAnonKey || token === supabasePublishableKey;
 
-    if (!isAnonKey) {
+    if (!isProjectKey) {
       // Production path: verify caller is a real authenticated admin
       const callerClient = createClient(supabaseUrl, supabaseAnonKey, {
         global: { headers: { Authorization: authHeader } },

@@ -69,6 +69,7 @@ const AdminPortal = () => {
   const [replyContent, setReplyContent] = useState<Record<string, string>>({});
   const [newInvestor, setNewInvestor] = useState({ email: "", password: "", full_name: "", company: "", phone: "" });
   const [creatingInvestor, setCreatingInvestor] = useState(false);
+  const [resendingInvite, setResendingInvite] = useState<string | null>(null);
   const [uploadingDeck, setUploadingDeck] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [pipelineCategory, setPipelineCategory] = useState("equity");

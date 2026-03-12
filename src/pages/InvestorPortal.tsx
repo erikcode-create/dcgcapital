@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LogOut, TrendingUp, MessageSquare, Heart, User, ArrowLeft, Eye, Download } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import NdaSigning from "@/components/NdaSigning";
+import InvestorPreferences from "@/components/InvestorPreferences";
 
 const InvestorPortal = () => {
   const { user, profile, userRole, signOut } = useAuth();

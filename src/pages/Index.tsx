@@ -17,10 +17,6 @@ import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const isPreviewMode = () => {
-  const hostname = window.location.hostname;
-  return hostname.includes("preview") && hostname.endsWith(".lovable.app");
-};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },

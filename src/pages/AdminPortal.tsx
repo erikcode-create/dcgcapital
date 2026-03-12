@@ -650,7 +650,7 @@ const AdminPortal = () => {
                         size="sm"
                         variant="outline"
                         className="flex-1 text-xs"
-                        onClick={() => navigate("/portal")}
+                        onClick={() => navigate(`/portal?viewAs=${inv.id}`)}
                       >
                         <Eye className="mr-1 h-3 w-3" /> View as Investor
                       </Button>

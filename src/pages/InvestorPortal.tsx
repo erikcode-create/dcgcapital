@@ -1,3 +1,5 @@
+// ABOUTME: Investor portal page showing deals assigned to the logged-in investor.
+// ABOUTME: Supports admin "view as investor" mode via ?viewAs= query param.
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,29 +9,40 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, TrendingUp, MessageSquare, Heart, User, ArrowLeft, Eye, Download } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import NdaSigning from "@/components/NdaSigning";
 
 const InvestorPortal = () => {
   const { user, profile, userRole, signOut } = useAuth();
   const isAdminViewing = userRole === "admin";
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const viewAs = searchParams.get("viewAs");
   const [deals, setDeals] = useState<any[]>([]);
   const [messages, setMessages] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [ndaSigned, setNdaSigned] = useState<boolean | null>(null);
+  const [viewedProfile, setViewedProfile] = useState<any | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user) {
+    if (viewAs && isAdminViewing) {
+      // Admin viewing as a specific investor
+      setNdaSigned(true);
+      fetchViewedInvestor(viewAs);
+    } else if (user) {
       if (isAdminViewing) {
         setNdaSigned(true);
         fetchDeals();
       } else {
         checkNda();
       }
+    } else {
+      // Preview mode with no user and no viewAs — fetch all deals
+      setNdaSigned(true);
+      fetchDeals();
     }
-  }, [user]);
+  }, [user, viewAs]);
 
   const checkNda = async () => {
     if (!user) return;
@@ -44,10 +57,29 @@ const InvestorPortal = () => {
     else setLoading(false);
   };
 
+  const fetchViewedInvestor = async (investorId: string) => {
+    // Fetch the investor's profile
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", investorId)
+      .single();
+    if (profileData) setViewedProfile(profileData);
+
+    // Fetch only their assigned deals
+    const { data } = await supabase
+      .from("deal_assignments")
+      .select("deal_id, deals(*)")
+      .eq("investor_id", investorId);
+    if (data) {
+      setDeals(data.map((d: any) => d.deals).filter(Boolean));
+    }
+    setLoading(false);
+  };
+
   const fetchDeals = async () => {
-    if (!user) return;
-    
-    if (isAdminViewing) {
+    if (isAdminViewing || !user) {
+      // Admin or preview mode — show all deals
       const { data } = await supabase
         .from("deals")
         .select("*")
@@ -164,7 +196,7 @@ const InvestorPortal = () => {
         <div className="bg-gradient-royal px-6 py-2 text-center">
           <div className="container mx-auto flex items-center justify-center gap-3">
             <Eye className="h-4 w-4 text-accent-foreground" />
-            <span className="font-body text-sm font-medium text-accent-foreground">Admin Preview — You're viewing the investor portal as an admin</span>
+            <span className="font-body text-sm font-medium text-accent-foreground">Admin Preview — Viewing as {viewedProfile?.full_name || "all investors"}</span>
             <Button size="sm" variant="outline" className="ml-4 h-7 border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10" onClick={() => navigate("/admin")}>
               <ArrowLeft className="mr-1 h-3 w-3" />Back to Admin
             </Button>
@@ -184,7 +216,7 @@ const InvestorPortal = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
-              <span className="font-body text-sm text-muted-foreground">{profile?.full_name || user?.email}</span>
+              <span className="font-body text-sm text-muted-foreground">{viewedProfile?.full_name || profile?.full_name || user?.email}</span>
             </div>
             <Button variant="outline" size="sm" onClick={signOut}>
               <LogOut className="mr-2 h-4 w-4" /> Sign Out
@@ -196,7 +228,7 @@ const InvestorPortal = () => {
       <main className="container mx-auto px-6 py-10">
         <div className="mb-10">
           <h1 className="font-display text-3xl font-light text-foreground">
-            Welcome back, <span className="text-gradient-royal font-medium">{profile?.full_name || "Investor"}</span>
+            Welcome back, <span className="text-gradient-royal font-medium">{(viewedProfile?.full_name || profile?.full_name || "Investor").split(" ")[0]}</span>
           </h1>
           <p className="font-body mt-2 text-muted-foreground">Review your assigned deals and opportunities below.</p>
         </div>

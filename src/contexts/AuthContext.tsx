@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 const isPreviewMode = () => {
   const hostname = window.location.hostname;
-  return hostname.includes("preview") && hostname.endsWith(".lovable.app");
+  return hostname.endsWith(".lovableproject.com") || 
+         (hostname.endsWith(".lovable.app") && hostname.includes("preview"));
 };
 
 type UserRole = "admin" | "investor" | "company";

@@ -473,6 +473,52 @@ const DealDetail = () => {
     if (!error) fetchRelated();
   };
 
+  // Custom metric handlers
+  const handleAddMetric = async () => {
+    if (!newMetricLabel.trim() || !deal) return;
+    setAddingMetric(true);
+    const maxOrder = dealMetrics.length > 0 ? Math.max(...dealMetrics.map(m => m.sort_order)) + 1 : 0;
+    const { error } = await (supabase as any).from("deal_metrics").insert({
+      deal_id: deal.id,
+      label: newMetricLabel.trim(),
+      value: newMetricValue ? parseFloat(newMetricValue) : null,
+      display_format: newMetricFormat,
+      sort_order: maxOrder,
+    });
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setNewMetricLabel("");
+      setNewMetricValue("");
+      setNewMetricFormat("currency");
+      fetchRelated();
+    }
+    setAddingMetric(false);
+  };
+
+  const handleDeleteMetric = async (metricId: string) => {
+    const { error } = await (supabase as any).from("deal_metrics").delete().eq("id", metricId);
+    if (!error) fetchRelated();
+  };
+
+  const handleUpdateMetricValue = async (metricId: string, newValue: string) => {
+    const { error } = await (supabase as any).from("deal_metrics").update({
+      value: newValue ? parseFloat(newValue) : null,
+    }).eq("id", metricId);
+    if (!error) fetchRelated();
+  };
+
+  const formatMetricValue = (value: number | null, displayFormat: string) => {
+    if (value === null || value === undefined) return "—";
+    switch (displayFormat) {
+      case "currency": return formatCurrency(value);
+      case "percentage": return `${value.toFixed(1)}%`;
+      case "multiple": return `${value.toFixed(1)}x`;
+      case "number": return new Intl.NumberFormat('en-US').format(value);
+      default: return formatCurrency(value);
+    }
+  };
+
   // Company invite handler
   const handleInviteCompany = async () => {
     if (!inviteEmail.trim() || !deal) return;

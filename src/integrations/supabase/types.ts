@@ -265,6 +265,47 @@ export type Database = {
           },
         ]
       }
+      deal_metrics: {
+        Row: {
+          created_at: string
+          deal_id: string
+          display_format: string
+          id: string
+          label: string
+          sort_order: number
+          updated_at: string
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          deal_id: string
+          display_format?: string
+          id?: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string
+          display_format?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_metrics_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_notes: {
         Row: {
           author_id: string
@@ -350,6 +391,8 @@ export type Database = {
       deals: {
         Row: {
           category: string
+          company_rep_email: string | null
+          company_rep_name: string | null
           contact_email: string | null
           contact_name: string | null
           created_at: string
@@ -374,6 +417,8 @@ export type Database = {
         }
         Insert: {
           category?: string
+          company_rep_email?: string | null
+          company_rep_name?: string | null
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string
@@ -398,6 +443,8 @@ export type Database = {
         }
         Update: {
           category?: string
+          company_rep_email?: string | null
+          company_rep_name?: string | null
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string

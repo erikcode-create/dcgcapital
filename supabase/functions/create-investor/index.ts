@@ -256,8 +256,8 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         user: {
-          id: newUser.user.id,
-          email: newUser.user.email,
+          id: userId,
+          email,
           full_name,
         },
       }),

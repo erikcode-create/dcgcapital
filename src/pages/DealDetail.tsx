@@ -117,6 +117,14 @@ const DealDetail = () => {
   const [dataRequestItems, setDataRequestItems] = useState<any[]>([]);
   const [companyInvitations, setCompanyInvitations] = useState<any[]>([]);
 
+  // Follow-up email state
+  const [followUpOpen, setFollowUpOpen] = useState(false);
+  const [followUpTo, setFollowUpTo] = useState("");
+  const [followUpCc, setFollowUpCc] = useState("");
+  const [followUpSubject, setFollowUpSubject] = useState("");
+  const [followUpBody, setFollowUpBody] = useState("");
+  const [sendingFollowUp, setSendingFollowUp] = useState(false);
+
   const fetchDeal = useCallback(async () => {
     if (!id) return;
     setLoading(true);

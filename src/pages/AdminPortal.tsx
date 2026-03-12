@@ -620,7 +620,6 @@ const AdminPortal = () => {
                   <DialogHeader><DialogTitle className="font-display">Create Investor Account</DialogTitle></DialogHeader>
                   <form onSubmit={handleCreateInvestor} className="space-y-4">
                     <div><Label>Email *</Label><Input type="email" value={newInvestor.email} onChange={(e) => setNewInvestor({ ...newInvestor, email: e.target.value })} required className="mt-1" /></div>
-                    <div><Label>Password *</Label><Input type="password" value={newInvestor.password} onChange={(e) => setNewInvestor({ ...newInvestor, password: e.target.value })} required minLength={8} className="mt-1" /></div>
                     <div><Label>Full Name *</Label><Input value={newInvestor.full_name} onChange={(e) => setNewInvestor({ ...newInvestor, full_name: e.target.value })} required className="mt-1" /></div>
                     <div><Label>Company</Label><Input value={newInvestor.company} onChange={(e) => setNewInvestor({ ...newInvestor, company: e.target.value })} className="mt-1" /></div>
                     <div><Label>Phone</Label><Input value={newInvestor.phone} onChange={(e) => setNewInvestor({ ...newInvestor, phone: e.target.value })} className="mt-1" /></div>

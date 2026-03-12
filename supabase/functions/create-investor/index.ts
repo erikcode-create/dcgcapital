@@ -220,7 +220,7 @@ serve(async (req) => {
         from_name: "Fitzpatrick Capital Partners",
         to_addresses: [{ address: email }],
         body_html: emailHtml,
-        body_text: `Dear ${displayName}, you have been invited to the Fitzpatrick Capital Partners Investor Portal. Email: ${email}. Log in at ${PORTAL_URL}`,
+        body_text: `Dear ${displayName}, you have been invited to the Fitzpatrick Capital Partners Investor Portal. Set your password at ${inviteUrl}`,
         body_preview: `You have been invited to the Fitzpatrick Capital Partners Investor Portal.`,
         sent_at: new Date().toISOString(),
         received_at: new Date().toISOString(),

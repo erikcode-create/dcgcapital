@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
     const accessToken = await getAccessToken();
 
     // Fetch emails from Graph API
-    let url = `https://graph.microsoft.com/v1.0/users/${MAILBOX}/messages?$top=50&$orderby=receivedDateTime desc&$select=id,subject,from,toRecipients,ccRecipients,bodyPreview,body,receivedDateTime,sentDateTime,isRead,hasAttachments,importance,conversationId,isDraft`;
+    let url = `https://graph.microsoft.com/v1.0/users/${MAILBOX}/mailFolders/Inbox/messages?$top=50&$orderby=receivedDateTime desc&$select=id,subject,from,toRecipients,ccRecipients,bodyPreview,body,receivedDateTime,sentDateTime,isRead,hasAttachments,importance,conversationId,isDraft`;
 
     if (lastEmail?.received_at) {
       const filterDate = new Date(lastEmail.received_at).toISOString();

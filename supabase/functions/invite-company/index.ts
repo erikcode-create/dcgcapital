@@ -236,20 +236,8 @@ Deno.serve(async (req) => {
       status: "pending",
     });
 
-    // Generate magic link for the user
-    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-      options: {
-        redirectTo: `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/login`,
-      },
-    });
-
-    // Build the magic link URL — use the hashed_token from the link data
-    let magicLinkUrl = "";
-    if (linkData?.properties?.action_link) {
-      magicLinkUrl = linkData.properties.action_link;
-    }
+    // Build the login URL for the company user
+    const portalUrl = `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/login`;
 
     // Send branded invitation email via Microsoft Graph
     const accessToken = await getAccessToken();
@@ -276,13 +264,13 @@ Deno.serve(async (req) => {
       </p>
 
       <div style="text-align:center;margin:32px 0;">
-        <a href="${magicLinkUrl}" style="display:inline-block;background:linear-gradient(135deg,#3b1a6e,#1f0e3d);color:#f0e8d8;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:500;">
+        <a href="${portalUrl}" style="display:inline-block;background:linear-gradient(135deg,#3b1a6e,#1f0e3d);color:#f0e8d8;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:500;">
           Access Data Room
         </a>
       </div>
 
       <p style="color:#6b5f7a;font-size:13px;line-height:1.5;">
-        This link will sign you in automatically. If you have any questions about the requested documents, please reply to this email.
+        Click the button above to access the data room. Sign in with your email and the password provided to you. If you have any questions about the requested documents, please reply to this email.
       </p>
 
       <hr style="border:none;border-top:1px solid #e8e0d6;margin:32px 0;" />

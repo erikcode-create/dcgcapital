@@ -7,7 +7,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import MfaSetup from "./pages/MfaSetup";
 import InvestorPortal from "./pages/InvestorPortal";
 import AdminPortal from "./pages/AdminPortal";
 import DealDetail from "./pages/DealDetail";
@@ -26,7 +28,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/mfa-setup" element={<ProtectedRoute><MfaSetup /></ProtectedRoute>} />
             <Route path="/portal" element={<ProtectedRoute requiredRole="investor"><InvestorPortal /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPortal /></ProtectedRoute>} />
             <Route path="/admin/deals/:id" element={<ProtectedRoute requiredRole="admin"><DealDetail /></ProtectedRoute>} />

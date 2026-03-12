@@ -216,7 +216,7 @@ const InvestorPortal = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
-              <span className="font-body text-sm text-muted-foreground">{profile?.full_name || user?.email}</span>
+              <span className="font-body text-sm text-muted-foreground">{viewedProfile?.full_name || profile?.full_name || user?.email}</span>
             </div>
             <Button variant="outline" size="sm" onClick={signOut}>
               <LogOut className="mr-2 h-4 w-4" /> Sign Out

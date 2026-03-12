@@ -68,7 +68,7 @@ const AdminPortal = () => {
   const [selectedDealId, setSelectedDealId] = useState("");
   const [selectedInvestorId, setSelectedInvestorId] = useState("");
   const [replyContent, setReplyContent] = useState<Record<string, string>>({});
-  const [newInvestor, setNewInvestor] = useState({ email: "", full_name: "", company: "", phone: "" });
+  const [newInvestor, setNewInvestor] = useState({ email: "", full_name: "", company: "", phone: "", role: "investor" });
   const [creatingInvestor, setCreatingInvestor] = useState(false);
   const [resendingInvite, setResendingInvite] = useState<string | null>(null);
   const [uploadingDeck, setUploadingDeck] = useState(false);
@@ -196,7 +196,7 @@ const AdminPortal = () => {
         toast({ title: "Error", description: result.error, variant: "destructive" });
       } else {
         toast({ title: "Investor created", description: `${newInvestor.full_name} will receive an email to set their password.` });
-        setNewInvestor({ email: "", full_name: "", company: "", phone: "" });
+        setNewInvestor({ email: "", full_name: "", company: "", phone: "", role: "investor" });
         setCreateInvestorOpen(false);
         fetchAll();
       }
@@ -621,6 +621,17 @@ const AdminPortal = () => {
                     <div><Label>Full Name *</Label><Input value={newInvestor.full_name} onChange={(e) => setNewInvestor({ ...newInvestor, full_name: e.target.value })} required className="mt-1" /></div>
                     <div><Label>Company</Label><Input value={newInvestor.company} onChange={(e) => setNewInvestor({ ...newInvestor, company: e.target.value })} className="mt-1" /></div>
                     <div><Label>Phone</Label><Input value={newInvestor.phone} onChange={(e) => setNewInvestor({ ...newInvestor, phone: e.target.value })} className="mt-1" /></div>
+                    <div>
+                      <Label>Role *</Label>
+                      <Select value={newInvestor.role} onValueChange={(v) => setNewInvestor({ ...newInvestor, role: v })}>
+                        <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="investor">Investor</SelectItem>
+                          <SelectItem value="company">Company</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <Button type="submit" className="w-full bg-gradient-royal text-accent-foreground" disabled={creatingInvestor}>
                       {creatingInvestor ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</> : "Create User"}
                     </Button>

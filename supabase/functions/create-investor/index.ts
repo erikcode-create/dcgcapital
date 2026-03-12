@@ -109,7 +109,8 @@ serve(async (req) => {
       }
     }
 
-    const { email, full_name, company, phone, resend } = await req.json();
+    const { email, full_name, company, phone, resend, role } = await req.json();
+    const assignedRole = role || "investor";
 
     if (!email) {
       return new Response(JSON.stringify({ error: "Email is required" }), {
@@ -158,6 +159,14 @@ serve(async (req) => {
           .from("profiles")
           .update({ company, phone })
           .eq("id", userId);
+      }
+
+      // Override the default role set by handle_new_user trigger if a different role was requested
+      if (assignedRole !== "investor") {
+        await adminClient
+          .from("user_roles")
+          .update({ role: assignedRole })
+          .eq("user_id", userId);
       }
     }
 

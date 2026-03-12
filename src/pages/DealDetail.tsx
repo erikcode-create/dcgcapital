@@ -101,6 +101,13 @@ const DealDetail = () => {
   const [newTaskAssignee, setNewTaskAssignee] = useState("");
   const [addingTask, setAddingTask] = useState(false);
 
+  // Custom metrics state
+  const [dealMetrics, setDealMetrics] = useState<any[]>([]);
+  const [newMetricLabel, setNewMetricLabel] = useState("");
+  const [newMetricValue, setNewMetricValue] = useState("");
+  const [newMetricFormat, setNewMetricFormat] = useState("currency");
+  const [addingMetric, setAddingMetric] = useState(false);
+
   // Company invite state
   const [inviteCompanyOpen, setInviteCompanyOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");

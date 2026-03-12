@@ -57,10 +57,29 @@ const InvestorPortal = () => {
     else setLoading(false);
   };
 
+  const fetchViewedInvestor = async (investorId: string) => {
+    // Fetch the investor's profile
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", investorId)
+      .single();
+    if (profileData) setViewedProfile(profileData);
+
+    // Fetch only their assigned deals
+    const { data } = await supabase
+      .from("deal_assignments")
+      .select("deal_id, deals(*)")
+      .eq("investor_id", investorId);
+    if (data) {
+      setDeals(data.map((d: any) => d.deals).filter(Boolean));
+    }
+    setLoading(false);
+  };
+
   const fetchDeals = async () => {
-    if (!user) return;
-    
-    if (isAdminViewing) {
+    if (isAdminViewing || !user) {
+      // Admin or preview mode — show all deals
       const { data } = await supabase
         .from("deals")
         .select("*")

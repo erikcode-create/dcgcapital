@@ -244,9 +244,6 @@ const InvestorPortal = () => {
           </div>
         )}
 
-        <div className="mb-10">
-          {/* spacer div to preserve layout after preferences card */}
-        </div>
 
         {loading ? (
           <div className="flex justify-center py-20">

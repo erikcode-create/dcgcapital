@@ -101,6 +101,15 @@ const AdminPortal = () => {
       if (!roleMap[r.user_id]) roleMap[r.user_id] = [];
       roleMap[r.user_id].push(r.role);
     });
+
+    // Build full user list with roles for the Users tab
+    const userList = profiles.map((p: any) => ({
+      ...p,
+      roles: roleMap[p.id] || [],
+    }));
+    setAllUsers(userList);
+
+    // Keep investor list for assign dialog and other references
     const investorList = profiles.filter((p: any) => {
       const userRoles = roleMap[p.id] || [];
       return userRoles.includes("investor") || userRoles.length === 0;

@@ -64,7 +64,21 @@ serve(async (req) => {
     }
 
     const token = authHeader.slice("Bearer ".length);
-    const isProjectKey = token === supabaseAnonKey || token === supabasePublishableKey;
+
+    const isAnonymousJwt = (() => {
+      try {
+        const payload = token.split(".")[1];
+        if (!payload) return false;
+        const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+        const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+        const claims = JSON.parse(atob(padded));
+        return claims?.role === "anon" && !claims?.sub;
+      } catch {
+        return false;
+      }
+    })();
+
+    const isProjectKey = token === supabaseAnonKey || token === supabasePublishableKey || isAnonymousJwt;
 
     if (!isProjectKey) {
       // Production path: verify caller is a real authenticated admin

@@ -160,6 +160,14 @@ serve(async (req) => {
           .update({ company, phone })
           .eq("id", userId);
       }
+
+      // Override the default role set by handle_new_user trigger if a different role was requested
+      if (assignedRole !== "investor") {
+        await adminClient
+          .from("user_roles")
+          .update({ role: assignedRole })
+          .eq("user_id", userId);
+      }
     }
 
     // Generate a recovery link so the investor can set their own password

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LogOut, TrendingUp, MessageSquare, Heart, User, ArrowLeft, Eye, Download } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import NdaSigning from "@/components/NdaSigning";
+import InvestorPreferences from "@/components/InvestorPreferences";
 
 const InvestorPortal = () => {
   const { user, profile, userRole, signOut } = useAuth();
@@ -232,6 +233,17 @@ const InvestorPortal = () => {
           </h1>
           <p className="font-body mt-2 text-muted-foreground">Review your assigned deals and opportunities below.</p>
         </div>
+
+        {/* Deal Preferences Section */}
+        {(user || viewAs) && (
+          <div className="mb-8">
+            <InvestorPreferences
+              userId={viewAs || user!.id}
+              readOnly={!!viewAs && isAdminViewing}
+            />
+          </div>
+        )}
+
 
         {loading ? (
           <div className="flex justify-center py-20">

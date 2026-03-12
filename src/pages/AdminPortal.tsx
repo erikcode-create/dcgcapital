@@ -68,7 +68,7 @@ const AdminPortal = () => {
   const [selectedDealId, setSelectedDealId] = useState("");
   const [selectedInvestorId, setSelectedInvestorId] = useState("");
   const [replyContent, setReplyContent] = useState<Record<string, string>>({});
-  const [newInvestor, setNewInvestor] = useState({ email: "", full_name: "", company: "", phone: "" });
+  const [newInvestor, setNewInvestor] = useState({ email: "", full_name: "", company: "", phone: "", role: "investor" });
   const [creatingInvestor, setCreatingInvestor] = useState(false);
   const [resendingInvite, setResendingInvite] = useState<string | null>(null);
   const [uploadingDeck, setUploadingDeck] = useState(false);

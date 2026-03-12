@@ -153,6 +153,7 @@ const DealDetail = () => {
     if (tasksRes.data) setDealTasks(tasksRes.data);
     if (requestItemsRes.data) setDataRequestItems(requestItemsRes.data);
     if (invitationsRes.data) setCompanyInvitations(invitationsRes.data);
+    if (metricsRes.data) setDealMetrics(metricsRes.data);
     
     const profiles = profilesRes.data || [];
     const roles = rolesRes.data || [];

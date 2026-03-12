@@ -275,6 +275,28 @@ const AdminPortal = () => {
     setResendingInvite(null);
   };
 
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    try {
+      // Remove existing roles for this user
+      const { error: deleteError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId);
+      if (deleteError) throw deleteError;
+
+      // Insert the new role
+      const { error: insertError } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: newRole as any });
+      if (insertError) throw insertError;
+
+      toast({ title: "Role updated", description: `User role changed to ${newRole}` });
+      fetchAll();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
   const getStageColor = (stage: string) => PIPELINE_STAGES.find(s => s.key === stage)?.color || "bg-muted text-muted-foreground border-border";
   const getStageLabel = (stage: string) => PIPELINE_STAGES.find(s => s.key === stage)?.label || stage;
 

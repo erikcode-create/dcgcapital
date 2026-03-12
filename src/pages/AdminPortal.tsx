@@ -184,8 +184,8 @@ const AdminPortal = () => {
       if (!response.ok) {
         toast({ title: "Error", description: result.error, variant: "destructive" });
       } else {
-        toast({ title: "Investor created", description: `${newInvestor.full_name} can now log in.` });
-        setNewInvestor({ email: "", password: "", full_name: "", company: "", phone: "" });
+        toast({ title: "Investor created", description: `${newInvestor.full_name} will receive an email to set their password.` });
+        setNewInvestor({ email: "", full_name: "", company: "", phone: "" });
         setCreateInvestorOpen(false);
         fetchAll();
       }

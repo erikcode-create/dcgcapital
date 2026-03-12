@@ -236,20 +236,8 @@ Deno.serve(async (req) => {
       status: "pending",
     });
 
-    // Generate magic link for the user
-    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-      options: {
-        redirectTo: `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/login`,
-      },
-    });
-
-    // Build the magic link URL — use the hashed_token from the link data
-    let magicLinkUrl = "";
-    if (linkData?.properties?.action_link) {
-      magicLinkUrl = linkData.properties.action_link;
-    }
+    // Build the login URL for the company user
+    const portalUrl = `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/login`;
 
     // Send branded invitation email via Microsoft Graph
     const accessToken = await getAccessToken();

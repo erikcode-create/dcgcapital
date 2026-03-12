@@ -14,8 +14,10 @@ const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Recovery/invite links include type=recovery in hash or query params
     const hash = window.location.hash;
-    if (!hash.includes("type=recovery")) {
+    const search = window.location.search;
+    if (!hash.includes("type=recovery") && !search.includes("type=recovery")) {
       navigate("/login");
     }
   }, [navigate]);

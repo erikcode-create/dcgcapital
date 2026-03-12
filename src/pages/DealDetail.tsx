@@ -44,6 +44,11 @@ const CATEGORIES = [
   { key: "revenue_seeking", label: "Revenue Seeking", color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
 ];
 
+const REVENUE_STAGES = [
+  { key: "pre_revenue", label: "Pre Revenue", color: "bg-rose-500/10 text-rose-700 border-rose-500/30" },
+  { key: "post_revenue", label: "Post Revenue", color: "bg-teal-500/10 text-teal-700 border-teal-500/30" },
+];
+
 const DEAL_TYPES = [
   { key: "equity", label: "Equity" },
   { key: "debt", label: "Debt" },

@@ -235,6 +235,70 @@ const AdminPortal = () => {
     }
   };
 
+  const handleResendInvite = async (investor: any) => {
+    setResendingInvite(investor.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const displayName = investor.full_name || investor.email;
+      const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background-color:#f5f0eb;font-family:Arial,sans-serif;">
+  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
+    <div style="background-color:#ffffff;border-radius:8px;padding:40px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <div style="text-align:center;margin-bottom:32px;">
+        <h1 style="font-family:Georgia,serif;font-size:24px;color:#2d1654;margin:0;">Fitzpatrick Capital Partners</h1>
+        <p style="color:#6b5f7a;font-size:13px;margin-top:4px;">Investor Portal</p>
+      </div>
+      <p style="color:#2d1654;font-size:16px;line-height:1.6;">Dear ${displayName},</p>
+      <p style="color:#4a4158;font-size:14px;line-height:1.6;">
+        This is a reminder that you have been invited to the Fitzpatrick Capital Partners Investor Portal. Through this portal you can review deal opportunities, express interest, and access confidential deal materials.
+      </p>
+      <p style="color:#4a4158;font-size:14px;line-height:1.6;">
+        Please log in using your email address: <strong>${investor.email}</strong>
+      </p>
+      <div style="text-align:center;margin:32px 0;">
+        <a href="https://dcgcapital.lovable.app/login" style="display:inline-block;background:linear-gradient(135deg,#3b1a6e,#1f0e3d);color:#f0e8d8;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:500;">
+          Access Investor Portal
+        </a>
+      </div>
+      <p style="color:#6b5f7a;font-size:13px;line-height:1.5;">
+        If you have forgotten your password, use the "Forgot Password" link on the login page. If you have any questions, please reply to this email.
+      </p>
+      <hr style="border:none;border-top:1px solid #e8e0d6;margin:32px 0;" />
+      <p style="color:#9a8fa6;font-size:11px;text-align:center;">
+        This is a confidential communication from Fitzpatrick Capital Partners. Do not forward this email.
+      </p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+          body: JSON.stringify({
+            to: investor.email,
+            subject: "Reminder — Fitzpatrick Capital Partners Investor Portal Access",
+            body: emailHtml,
+          }),
+        }
+      );
+      const result = await response.json();
+      if (result.success) {
+        toast({ title: "Invite resent", description: `Reminder email sent to ${investor.email}` });
+      } else {
+        toast({ title: "Error", description: result.error || "Failed to send email", variant: "destructive" });
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+    setResendingInvite(null);
+  };
+
   const getStageColor = (stage: string) => PIPELINE_STAGES.find(s => s.key === stage)?.color || "bg-muted text-muted-foreground border-border";
   const getStageLabel = (stage: string) => PIPELINE_STAGES.find(s => s.key === stage)?.label || stage;
 

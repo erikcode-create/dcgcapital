@@ -144,16 +144,7 @@ serve(async (req) => {
       </p>
 
       <p style="color:#4a4158;font-size:14px;line-height:1.6;">
-        Your login credentials are:
-      </p>
-
-      <div style="background-color:#f9f6f2;border-radius:6px;padding:16px 20px;margin:16px 0;">
-        <p style="margin:0 0 8px 0;color:#2d1654;font-size:14px;"><strong>Email:</strong> ${email}</p>
-        <p style="margin:0;color:#2d1654;font-size:14px;"><strong>Password:</strong> ${password}</p>
-      </div>
-
-      <p style="color:#6b5f7a;font-size:13px;line-height:1.5;">
-        We recommend changing your password after your first login.
+        To sign in, simply visit the portal and enter your email address (<strong>${email}</strong>). You will receive a secure magic link — no password needed.
       </p>
 
       <div style="text-align:center;margin:32px 0;">

@@ -256,7 +256,7 @@ const AdminPortal = () => {
         This is a reminder that you have been invited to the Fitzpatrick Capital Partners Investor Portal. Through this portal you can review deal opportunities, express interest, and access confidential deal materials.
       </p>
       <p style="color:#4a4158;font-size:14px;line-height:1.6;">
-        Please log in using your email address: <strong>${investor.email}</strong>
+        To sign in, simply visit the portal and enter your email address (<strong>${investor.email}</strong>). You will receive a secure magic link — no password needed.
       </p>
       <div style="text-align:center;margin:32px 0;">
         <a href="https://dcgcapital.lovable.app/login" style="display:inline-block;background:linear-gradient(135deg,#3b1a6e,#1f0e3d);color:#f0e8d8;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:500;">
@@ -264,7 +264,7 @@ const AdminPortal = () => {
         </a>
       </div>
       <p style="color:#6b5f7a;font-size:13px;line-height:1.5;">
-        If you have forgotten your password, use the "Forgot Password" link on the login page. If you have any questions, please reply to this email.
+        If you have any questions, please reply to this email.
       </p>
       <hr style="border:none;border-top:1px solid #e8e0d6;margin:32px 0;" />
       <p style="color:#9a8fa6;font-size:11px;text-align:center;">

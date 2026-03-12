@@ -2,7 +2,7 @@
 // ABOUTME: Features hero, approach pillars, capital solutions, target profile, comparison, about, and deal submission.
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Link, Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

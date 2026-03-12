@@ -160,20 +160,6 @@ serve(async (req) => {
     // Extract the token-bearing URL from the generated link
     const inviteUrl = linkData?.properties?.action_link || PORTAL_URL + '/login';
 
-    if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Update profile with additional info if provided
-    if (company || phone) {
-      await adminClient
-        .from("profiles")
-        .update({ company, phone })
-        .eq("id", newUser.user.id);
-    }
 
     // Send branded invite email via Microsoft Graph
     const displayName = full_name || email;

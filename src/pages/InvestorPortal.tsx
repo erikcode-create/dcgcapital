@@ -234,6 +234,20 @@ const InvestorPortal = () => {
           <p className="font-body mt-2 text-muted-foreground">Review your assigned deals and opportunities below.</p>
         </div>
 
+        {/* Deal Preferences Section */}
+        {(user || viewAs) && (
+          <div className="mb-8">
+            <InvestorPreferences
+              userId={viewAs || user!.id}
+              readOnly={!!viewAs && isAdminViewing}
+            />
+          </div>
+        )}
+
+        <div className="mb-10">
+          {/* spacer div to preserve layout after preferences card */}
+        </div>
+
         {loading ? (
           <div className="flex justify-center py-20">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />

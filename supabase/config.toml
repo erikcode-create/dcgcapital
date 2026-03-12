@@ -20,3 +20,12 @@ verify_jwt = false
 
 [functions.send-email]
 verify_jwt = false
+
+[functions.create-investor]
+verify_jwt = false
+
+[functions.invite-company]
+verify_jwt = false
+
+[functions.parse-pitch-deck]
+verify_jwt = false

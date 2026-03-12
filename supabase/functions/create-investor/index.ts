@@ -109,7 +109,8 @@ serve(async (req) => {
       }
     }
 
-    const { email, full_name, company, phone, resend } = await req.json();
+    const { email, full_name, company, phone, resend, role } = await req.json();
+    const assignedRole = role || "investor";
 
     if (!email) {
       return new Response(JSON.stringify({ error: "Email is required" }), {

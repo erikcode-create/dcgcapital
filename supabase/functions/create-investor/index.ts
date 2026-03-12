@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 const MAILBOX = "data@fitzcap.co";
-const PORTAL_URL = "https://dcgcapital.lovable.app/login";
+const PORTAL_URL = "https://dcgcapital.lovable.app";
 
 async function getAccessToken(): Promise<string> {
   const tenantId = Deno.env.get("AZURE_TENANT_ID");

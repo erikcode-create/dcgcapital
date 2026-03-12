@@ -72,9 +72,6 @@ const Index = () => {
   const [expandedSolution, setExpandedSolution] = useState<number | null>(null);
   const { toast } = useToast();
 
-  if (isPreviewMode()) {
-    return <Navigate to="/admin" replace />;
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

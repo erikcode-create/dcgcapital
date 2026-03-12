@@ -94,7 +94,7 @@ serve(async (req) => {
       }
     }
 
-    const { email, full_name, company, phone } = await req.json();
+    const { email, full_name, company, phone, resend } = await req.json();
 
     if (!email) {
       return new Response(JSON.stringify({ error: "Email is required" }), {
@@ -103,18 +103,47 @@ serve(async (req) => {
       });
     }
 
-    // Create the user with admin API (no password — investor sets their own via invite link)
-    const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-      email,
-      email_confirm: true,
-      user_metadata: { full_name },
-    });
+    let userId: string;
 
-    if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (resend) {
+      // Resend mode: generate a new recovery link for an existing user
+      const { data: profiles } = await adminClient
+        .from("profiles")
+        .select("id")
+        .eq("email", email)
+        .single();
+
+      if (!profiles) {
+        return new Response(JSON.stringify({ error: "User not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      userId = profiles.id;
+    } else {
+      // Create mode: create a new user account
+      const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        user_metadata: { full_name },
       });
+
+      if (createError) {
+        return new Response(JSON.stringify({ error: createError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      userId = newUser.user.id;
+
+      // Update profile with additional info if provided
+      if (company || phone) {
+        await adminClient
+          .from("profiles")
+          .update({ company, phone })
+          .eq("id", userId);
+      }
     }
 
     // Generate a recovery link so the investor can set their own password
@@ -131,20 +160,6 @@ serve(async (req) => {
     // Extract the token-bearing URL from the generated link
     const inviteUrl = linkData?.properties?.action_link || PORTAL_URL + '/login';
 
-    if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Update profile with additional info if provided
-    if (company || phone) {
-      await adminClient
-        .from("profiles")
-        .update({ company, phone })
-        .eq("id", newUser.user.id);
-    }
 
     // Send branded invite email via Microsoft Graph
     const displayName = full_name || email;
@@ -241,8 +256,8 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         user: {
-          id: newUser.user.id,
-          email: newUser.user.email,
+          id: userId,
+          email,
           full_name,
         },
       }),

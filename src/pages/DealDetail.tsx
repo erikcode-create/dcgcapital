@@ -1121,6 +1121,15 @@ const DealDetail = () => {
                           Updated {format(new Date(aiSummary.generated_at), "MMM d, h:mm a")}
                         </span>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={openFollowUpDialog}
+                        disabled={!aiSummary || !(deal.company_rep_email || deal.contact_email)}
+                      >
+                        <Send className="mr-1 h-3 w-3" />
+                        Send Follow-up
+                      </Button>
                       <Button size="sm" variant="outline" onClick={handleRefreshAiAnalysis} disabled={refreshingAi}>
                         {refreshingAi ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
                         Refresh

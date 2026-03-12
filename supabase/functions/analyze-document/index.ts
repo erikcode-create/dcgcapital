@@ -119,8 +119,10 @@ Current deal data:
 - Revenue: ${deal?.revenue || "None"}
 - Investment Amount: ${deal?.investment_amount || "None"}
 - Target Return: ${deal?.target_return || "None"}
-- Contact Name: ${deal?.contact_name || "None"}
-- Contact Email: ${deal?.contact_email || "None"}
+- Intermediary/Banker Name: ${deal?.contact_name || "None"}
+- Intermediary/Banker Email: ${deal?.contact_email || "None"}
+- Company Rep Name: ${deal?.company_rep_name || "None"}
+- Company Rep Email: ${deal?.company_rep_email || "None"}
 - Category: ${deal?.category || "equity"}
 
 Return a JSON object with exactly these two fields:
@@ -136,8 +138,10 @@ Return a JSON object with exactly these two fields:
     "revenue": numeric value in dollars or null,
     "investment_amount": numeric value in dollars or null,
     "target_return": "target return string or null",
-    "contact_name": "contact name or null",
-    "contact_email": "contact email or null",
+    "contact_name": "intermediary/banker name or null (the person who sourced the deal)",
+    "contact_email": "intermediary/banker email or null",
+    "company_rep_name": "company representative name (CEO, CFO, etc.) or null",
+    "company_rep_email": "company representative email or null",
     "category": "one of: equity, debt, revenue_seeking — or null",
     "notes": "additional insights to append to notes, or null"
   }

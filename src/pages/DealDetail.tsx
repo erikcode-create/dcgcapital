@@ -101,6 +101,13 @@ const DealDetail = () => {
   const [newTaskAssignee, setNewTaskAssignee] = useState("");
   const [addingTask, setAddingTask] = useState(false);
 
+  // Custom metrics state
+  const [dealMetrics, setDealMetrics] = useState<any[]>([]);
+  const [newMetricLabel, setNewMetricLabel] = useState("");
+  const [newMetricValue, setNewMetricValue] = useState("");
+  const [newMetricFormat, setNewMetricFormat] = useState("currency");
+  const [addingMetric, setAddingMetric] = useState(false);
+
   // Company invite state
   const [inviteCompanyOpen, setInviteCompanyOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -126,7 +133,7 @@ const DealDetail = () => {
 
   const fetchRelated = useCallback(async () => {
     if (!id) return;
-    const [docsRes, emailsRes, notesRes, assignRes, profilesRes, rolesRes, msgsRes, aiSummaryRes, tasksRes, requestItemsRes, invitationsRes] = await Promise.all([
+    const [docsRes, emailsRes, notesRes, assignRes, profilesRes, rolesRes, msgsRes, aiSummaryRes, tasksRes, requestItemsRes, invitationsRes, metricsRes] = await Promise.all([
       (supabase as any).from("deal_documents").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
       (supabase as any).from("deal_emails").select("*, emails(*)").eq("deal_id", id).order("linked_at", { ascending: false }),
       supabase.from("deal_notes").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
@@ -138,6 +145,7 @@ const DealDetail = () => {
       supabase.from("deal_tasks").select("*").eq("deal_id", id).order("due_date", { ascending: true, nullsFirst: false }),
       (supabase as any).from("data_request_items").select("*").eq("deal_id", id).order("sort_order"),
       (supabase as any).from("company_invitations").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
+      (supabase as any).from("deal_metrics").select("*").eq("deal_id", id).order("sort_order"),
     ]);
     if (docsRes.data) setDealDocuments(docsRes.data);
     if (emailsRes.data) setDealEmails(emailsRes.data);
@@ -145,6 +153,7 @@ const DealDetail = () => {
     if (tasksRes.data) setDealTasks(tasksRes.data);
     if (requestItemsRes.data) setDataRequestItems(requestItemsRes.data);
     if (invitationsRes.data) setCompanyInvitations(invitationsRes.data);
+    if (metricsRes.data) setDealMetrics(metricsRes.data);
     
     const profiles = profilesRes.data || [];
     const roles = rolesRes.data || [];
@@ -464,6 +473,52 @@ const DealDetail = () => {
     if (!error) fetchRelated();
   };
 
+  // Custom metric handlers
+  const handleAddMetric = async () => {
+    if (!newMetricLabel.trim() || !deal) return;
+    setAddingMetric(true);
+    const maxOrder = dealMetrics.length > 0 ? Math.max(...dealMetrics.map(m => m.sort_order)) + 1 : 0;
+    const { error } = await (supabase as any).from("deal_metrics").insert({
+      deal_id: deal.id,
+      label: newMetricLabel.trim(),
+      value: newMetricValue ? parseFloat(newMetricValue) : null,
+      display_format: newMetricFormat,
+      sort_order: maxOrder,
+    });
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setNewMetricLabel("");
+      setNewMetricValue("");
+      setNewMetricFormat("currency");
+      fetchRelated();
+    }
+    setAddingMetric(false);
+  };
+
+  const handleDeleteMetric = async (metricId: string) => {
+    const { error } = await (supabase as any).from("deal_metrics").delete().eq("id", metricId);
+    if (!error) fetchRelated();
+  };
+
+  const handleUpdateMetricValue = async (metricId: string, newValue: string) => {
+    const { error } = await (supabase as any).from("deal_metrics").update({
+      value: newValue ? parseFloat(newValue) : null,
+    }).eq("id", metricId);
+    if (!error) fetchRelated();
+  };
+
+  const formatMetricValue = (value: number | null, displayFormat: string) => {
+    if (value === null || value === undefined) return "—";
+    switch (displayFormat) {
+      case "currency": return formatCurrency(value);
+      case "percentage": return `${value.toFixed(1)}%`;
+      case "multiple": return `${value.toFixed(1)}x`;
+      case "number": return new Intl.NumberFormat('en-US').format(value);
+      default: return formatCurrency(value);
+    }
+  };
+
   // Company invite handler
   const handleInviteCompany = async () => {
     if (!inviteEmail.trim() || !deal) return;
@@ -692,26 +747,166 @@ const DealDetail = () => {
                       <span className="font-body text-sm font-semibold text-accent">{(deal.enterprise_value / deal.ebitda).toFixed(1)}x</span>
                     </div>
                   )}
+
+                  {/* Custom Metrics */}
+                  {(dealMetrics.length > 0 || editing) && (
+                    <div className="mt-4 pt-3 border-t border-border">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider">Custom Metrics</p>
+                      </div>
+                      <div className="space-y-2">
+                        {dealMetrics.map((metric: any) => (
+                          <div key={metric.id} className="flex items-center justify-between group">
+                            <span className="font-body text-sm text-muted-foreground">{metric.label}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-display text-sm font-semibold text-foreground">
+                                {formatMetricValue(metric.value, metric.display_format)}
+                              </span>
+                              {editing && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => handleDeleteMetric(metric.id)}
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add metric form — always visible */}
+                      <div className="mt-3 flex items-end gap-2">
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Metric label..."
+                            value={newMetricLabel}
+                            onChange={e => setNewMetricLabel(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div className="w-[120px]">
+                          <Input
+                            type="number"
+                            placeholder="Value"
+                            value={newMetricValue}
+                            onChange={e => setNewMetricValue(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <Select value={newMetricFormat} onValueChange={setNewMetricFormat}>
+                          <SelectTrigger className="w-[100px] h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="currency">Currency</SelectItem>
+                            <SelectItem value="percentage">Percentage</SelectItem>
+                            <SelectItem value="multiple">Multiple</SelectItem>
+                            <SelectItem value="number">Number</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8"
+                          onClick={handleAddMetric}
+                          disabled={!newMetricLabel.trim() || addingMetric}
+                        >
+                          {addingMetric ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Show add metric prompt when no custom metrics and not editing */}
+                  {dealMetrics.length === 0 && !editing && (
+                    <div className="mt-4 pt-3 border-t border-border">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider">Custom Metrics</p>
+                      </div>
+                      <div className="mt-2 flex items-end gap-2">
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Metric label..."
+                            value={newMetricLabel}
+                            onChange={e => setNewMetricLabel(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div className="w-[120px]">
+                          <Input
+                            type="number"
+                            placeholder="Value"
+                            value={newMetricValue}
+                            onChange={e => setNewMetricValue(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <Select value={newMetricFormat} onValueChange={setNewMetricFormat}>
+                          <SelectTrigger className="w-[100px] h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="currency">Currency</SelectItem>
+                            <SelectItem value="percentage">Percentage</SelectItem>
+                            <SelectItem value="multiple">Multiple</SelectItem>
+                            <SelectItem value="number">Number</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8"
+                          onClick={handleAddMetric}
+                          disabled={!newMetricLabel.trim() || addingMetric}
+                        >
+                          {addingMetric ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
               <Card className="border-border">
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="font-display text-base">Contact</CardTitle>
+                  <CardTitle className="font-display text-base">Contacts</CardTitle>
                   {!editing && <Button size="sm" variant="ghost" onClick={() => setEditing(true)}><Edit className="mr-1 h-3 w-3" />Edit</Button>}
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {editing ? (
-                    <>
-                      <div><Label className="font-body text-xs text-muted-foreground">Contact Name</Label><Input value={editData.contact_name || ""} onChange={e => setEditData({...editData, contact_name: e.target.value})} className="mt-1" placeholder="John Smith (Banker)" /></div>
-                      <div><Label className="font-body text-xs text-muted-foreground">Contact Email</Label><Input type="email" value={editData.contact_email || ""} onChange={e => setEditData({...editData, contact_email: e.target.value})} className="mt-1" /></div>
-                    </>
-                  ) : (
-                    <>
-                      <div><p className="font-body text-xs text-muted-foreground">Contact Name</p><p className="font-body text-sm text-foreground">{deal.contact_name || "—"}</p></div>
-                      <div><p className="font-body text-xs text-muted-foreground">Contact Email</p><p className="font-body text-sm text-foreground">{deal.contact_email || "—"}</p></div>
-                    </>
-                  )}
+                <CardContent className="space-y-4">
+                  {/* Intermediary / Banker */}
+                  <div>
+                    <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Intermediary / Banker</p>
+                    {editing ? (
+                      <div className="space-y-2">
+                        <div><Label className="font-body text-xs text-muted-foreground">Name</Label><Input value={editData.contact_name || ""} onChange={e => setEditData({...editData, contact_name: e.target.value})} className="mt-1" placeholder="Banker name" /></div>
+                        <div><Label className="font-body text-xs text-muted-foreground">Email</Label><Input type="email" value={editData.contact_email || ""} onChange={e => setEditData({...editData, contact_email: e.target.value})} className="mt-1" /></div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <div><p className="font-body text-xs text-muted-foreground">Name</p><p className="font-body text-sm text-foreground">{deal.contact_name || "—"}</p></div>
+                        <div><p className="font-body text-xs text-muted-foreground">Email</p><p className="font-body text-sm text-foreground">{deal.contact_email || "—"}</p></div>
+                      </div>
+                    )}
+                  </div>
+                  <Separator />
+                  {/* Company Representative */}
+                  <div>
+                    <p className="font-body text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Company Representative</p>
+                    {editing ? (
+                      <div className="space-y-2">
+                        <div><Label className="font-body text-xs text-muted-foreground">Name</Label><Input value={editData.company_rep_name || ""} onChange={e => setEditData({...editData, company_rep_name: e.target.value})} className="mt-1" placeholder="CEO, CFO, etc." /></div>
+                        <div><Label className="font-body text-xs text-muted-foreground">Email</Label><Input type="email" value={editData.company_rep_email || ""} onChange={e => setEditData({...editData, company_rep_email: e.target.value})} className="mt-1" /></div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <div><p className="font-body text-xs text-muted-foreground">Name</p><p className="font-body text-sm text-foreground">{deal.company_rep_name || "—"}</p></div>
+                        <div><p className="font-body text-xs text-muted-foreground">Email</p><p className="font-body text-sm text-foreground">{deal.company_rep_email || "—"}</p></div>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 

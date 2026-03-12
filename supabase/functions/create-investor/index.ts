@@ -89,22 +89,42 @@ serve(async (req) => {
       });
     }
 
-    const { email, password, full_name, company, phone } = await req.json();
+    const { email, full_name, company, phone } = await req.json();
 
-    if (!email || !password) {
-      return new Response(JSON.stringify({ error: "Email and password are required" }), {
+    if (!email) {
+      return new Response(JSON.stringify({ error: "Email is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Create the user with admin API (auto-confirms email)
+    // Create the user with admin API (no password — investor sets their own via invite link)
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
-      password,
       email_confirm: true,
       user_metadata: { full_name },
     });
+
+    if (createError) {
+      return new Response(JSON.stringify({ error: createError.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Generate a recovery link so the investor can set their own password
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: 'recovery',
+      email,
+      options: { redirectTo: PORTAL_URL + '/reset-password' },
+    });
+
+    if (linkError) {
+      console.error("Failed to generate recovery link:", linkError);
+    }
+
+    // Extract the token-bearing URL from the generated link
+    const inviteUrl = linkData?.properties?.action_link || PORTAL_URL + '/login';
 
     if (createError) {
       return new Response(JSON.stringify({ error: createError.message }), {

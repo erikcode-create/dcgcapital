@@ -639,11 +639,34 @@ const AdminPortal = () => {
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent font-body text-sm font-semibold">
                         {(inv.full_name || "?")[0]}
                       </div>
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <p className="font-body text-sm font-medium">{inv.full_name || "—"}</p>
                         <p className="font-body text-xs text-muted-foreground">{inv.email}</p>
                         {inv.company && <p className="font-body text-xs text-muted-foreground">{inv.company}</p>}
                       </div>
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 text-xs"
+                        onClick={() => navigate("/portal")}
+                      >
+                        <Eye className="mr-1 h-3 w-3" /> View as Investor
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 text-xs"
+                        disabled={resendingInvite === inv.id}
+                        onClick={() => handleResendInvite(inv)}
+                      >
+                        {resendingInvite === inv.id ? (
+                          <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Sending...</>
+                        ) : (
+                          <><Send className="mr-1 h-3 w-3" /> Resend Invite</>
+                        )}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

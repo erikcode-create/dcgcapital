@@ -54,7 +54,7 @@ serve(async (req) => {
     const supabasePublishableKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify the caller is an admin (skip in preview mode when project key is used)
+    // Verify the caller is an authenticated admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "No authorization header" }), {
@@ -63,50 +63,34 @@ serve(async (req) => {
       });
     }
 
-    const token = authHeader.slice("Bearer ".length);
+    const callerClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
-    const isAnonymousJwt = (() => {
-      try {
-        const payload = token.split(".")[1];
-        if (!payload) return false;
-        const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-        const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-        const claims = JSON.parse(atob(padded));
-        return claims?.role === "anon" && !claims?.sub;
-      } catch {
-        return false;
-      }
-    })();
-
-    const isProjectKey = token === supabaseAnonKey || token === supabasePublishableKey || isAnonymousJwt;
-
-    if (!isProjectKey) {
-      // Production path: verify caller is a real authenticated admin
-      const callerClient = createClient(supabaseUrl, supabaseAnonKey, {
-        global: { headers: { Authorization: authHeader } },
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-      const { data: { user: caller } } = await callerClient.auth.getUser();
-      if (!caller) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    }
 
-      // Check admin role
-      const { data: roleData } = await adminClient
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", caller.id)
-        .eq("role", "admin")
-        .single();
+    const callerId = claimsData.claims.sub;
 
-      if (!roleData) {
-        return new Response(JSON.stringify({ error: "Forbidden: admin role required" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    // Check admin role using service-role client to bypass RLS
+    const { data: roleData } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", callerId)
+      .eq("role", "admin")
+      .single();
+
+    if (!roleData) {
+      return new Response(JSON.stringify({ error: "Forbidden: admin role required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { email, full_name, company, phone, resend, role } = await req.json();

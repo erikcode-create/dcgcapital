@@ -1,3 +1,5 @@
+// ABOUTME: Route guard component that redirects unauthenticated users to login.
+// ABOUTME: Optionally enforces a required role, with admin always having access.
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 
@@ -6,18 +8,8 @@ interface ProtectedRouteProps {
   requiredRole?: "admin" | "investor" | "company";
 }
 
-const isPreviewMode = () => {
-  const hostname = window.location.hostname;
-  return hostname.endsWith(".lovableproject.com") || 
-         (hostname.endsWith(".lovable.app") && hostname.includes("preview"));
-};
-
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { user, loading, userRole } = useAuth();
-
-  if (isPreviewMode()) {
-    return <>{children}</>;
-  }
 
   if (loading) {
     return (

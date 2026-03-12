@@ -80,9 +80,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchUserData(session.user.id);
-      } else if (isPreviewMode()) {
-        // In preview mode without a session, set admin role for easy access
-        setUserRole("admin");
       }
       setLoading(false);
     });

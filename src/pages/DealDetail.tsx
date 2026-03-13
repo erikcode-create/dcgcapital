@@ -22,7 +22,8 @@ import {
   ArrowLeft, Trash2, Users, DollarSign, TrendingUp, Edit, Save, X,
   Briefcase, MapPin, Mail, FileText, Clock, User, Loader2, MessageSquare,
   Building2, Phone, ChevronRight, Upload, Sparkles, Check, X as XIcon,
-  AlertTriangle, Info, CalendarDays, Plus, CheckCircle2, RefreshCw, Send
+  AlertTriangle, Info, CalendarDays, Plus, CheckCircle2, RefreshCw, Send,
+  Search, Eye, EyeOff, Globe
 } from "lucide-react";
 import DataRoomSection from "@/components/DataRoomSection";
 import { format } from "date-fns";

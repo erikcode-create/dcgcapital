@@ -131,6 +131,10 @@ const DealDetail = () => {
   const [followUpBody, setFollowUpBody] = useState("");
   const [sendingFollowUp, setSendingFollowUp] = useState(false);
 
+  // People research state
+  const [peopleResearch, setPeopleResearch] = useState<any[]>([]);
+  const [researchingPerson, setResearchingPerson] = useState(false);
+
   const fetchDeal = useCallback(async () => {
     if (!id) return;
     setLoading(true);

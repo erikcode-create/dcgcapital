@@ -730,7 +730,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
                     {linkedDeals.has(email.id) && (
                       <Badge variant="secondary" className="text-[10px]">
                         <Briefcase className="mr-1 h-3 w-3" />
-                        {linkedDeals.get(email.id)}
+                        {linkedDeals.get(email.id)?.dealName}
                       </Badge>
                     )}
                     <span className="ml-auto text-[11px] font-body text-muted-foreground flex-shrink-0 flex items-center gap-1">

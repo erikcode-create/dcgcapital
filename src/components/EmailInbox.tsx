@@ -92,7 +92,9 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [linkedDeals, setLinkedDeals] = useState<Map<string, string>>(new Map());
+  const [linkedDeals, setLinkedDeals] = useState<Map<string, { dealId: string; dealName: string }>>(new Map());
+  const [allDeals, setAllDeals] = useState<{ id: string; name: string }[]>([]);
+  const [reassigning, setReassigning] = useState(false);
   const { toast } = useToast();
 
   const fetchEmails = useCallback(async () => {

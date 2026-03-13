@@ -669,6 +669,51 @@ const DealDetail = () => {
     }
   };
 
+
+  // People research handlers
+  const handleResearchPeople = async () => {
+    if (!deal || !id) return;
+    const people: { name: string; role: string; email?: string }[] = [];
+    if (deal.company_rep_name) {
+      people.push({ name: deal.company_rep_name, role: "Company Rep", email: deal.company_rep_email || undefined });
+    }
+    if (deal.contact_name && deal.contact_name !== deal.company_rep_name) {
+      people.push({ name: deal.contact_name, role: "Contact", email: deal.contact_email || undefined });
+    }
+    if (people.length === 0) {
+      toast({ title: "No people to research", description: "Add a company rep or contact name first", variant: "destructive" });
+      return;
+    }
+    setResearchingPerson(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      for (const person of people) {
+        const { data, error } = await supabase.functions.invoke("research-person", {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+          body: { deal_id: id, person_name: person.name, person_role: person.role, person_email: person.email },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+      }
+      toast({ title: "Research Complete", description: `Researched ${people.length} person(s)` });
+      fetchRelated();
+    } catch (err: any) {
+      toast({ title: "Research failed", description: err.message, variant: "destructive" });
+    } finally {
+      setResearchingPerson(false);
+    }
+  };
+
+  const handleToggleResearchVisibility = async (researchId: string, field: string, currentValue: boolean) => {
+    const update: any = { [field]: !currentValue };
+    const { error } = await (supabase as any).from("deal_people_research").update(update).eq("id", researchId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      fetchRelated();
+    }
+  };
+
   // Data request progress for this deal
   const dataRequestTotal = dataRequestItems.length;
   const dataRequestCompleted = dataRequestItems.filter(

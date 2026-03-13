@@ -109,18 +109,18 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
         .limit(100),
       supabase
         .from("deal_emails")
-        .select("email_id, deals(name)"),
+        .select("email_id, deal_id, deals(name)"),
     ]);
 
     if (emailsResult.error) {
       console.error("Error fetching emails:", emailsResult.error);
       setEmails([]);
     } else {
-      // Build a map of email_id -> deal name for linked emails
-      const dealMap = new Map<string, string>();
+      // Build a map of email_id -> { dealId, dealName } for linked emails
+      const dealMap = new Map<string, { dealId: string; dealName: string }>();
       (linkedResult.data || []).forEach((d: any) => {
         const dealName = d.deals?.name;
-        if (dealName) dealMap.set(d.email_id, dealName);
+        if (dealName && d.deal_id) dealMap.set(d.email_id, { dealId: d.deal_id, dealName });
       });
       setLinkedDeals(dealMap);
       setEmails((emailsResult.data || []) as Email[]);

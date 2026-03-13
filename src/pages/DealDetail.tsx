@@ -586,7 +586,7 @@ const DealDetail = () => {
     }
 
     lines.push("Please let us know if you have any questions or if there is a convenient time to discuss.\n");
-    lines.push("Best regards,\nDCG Capital");
+    lines.push("Best regards,\nFitzpatrick Capital Partners");
 
     setFollowUpBody(lines.join("\n"));
     setFollowUpOpen(true);
@@ -1143,7 +1143,7 @@ const DealDetail = () => {
                         size="sm"
                         variant="outline"
                         onClick={openFollowUpDialog}
-                        disabled={!aiSummary || !(deal.company_rep_email || deal.contact_email)}
+                        disabled={!aiSummary}
                       >
                         <Send className="mr-1 h-3 w-3" />
                         Send Follow-up

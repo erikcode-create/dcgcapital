@@ -128,6 +128,15 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     setLoading(false);
   }, [activeFolder]);
 
+  // Fetch all deals once on mount for the reassignment dropdown
+  useEffect(() => {
+    const fetchAllDeals = async () => {
+      const { data } = await supabase.from("deals").select("id, name").order("name");
+      if (data) setAllDeals(data);
+    };
+    fetchAllDeals();
+  }, []);
+
   // Auto-sync on mount, then load from DB
   const hasAutoSynced = useState(false);
   useEffect(() => {

@@ -563,7 +563,10 @@ const DealDetail = () => {
   // Follow-up email handlers
   const openFollowUpDialog = () => {
     const toEmail = deal.company_rep_email || deal.contact_email || "";
-    const ccEmail = deal.company_rep_email && deal.contact_email ? deal.contact_email : "";
+    const existingCc = deal.company_rep_email && deal.contact_email ? deal.contact_email : "";
+    // Always include justin@fitzcap.co in CC by default
+    const defaultCc = "justin@fitzcap.co";
+    const ccEmail = existingCc ? `${existingCc}, ${defaultCc}` : defaultCc;
     setFollowUpTo(toEmail);
     setFollowUpCc(ccEmail);
     setFollowUpSubject(`Re: ${deal.name} - Follow Up`);

@@ -22,7 +22,8 @@ import {
   ArrowLeft, Trash2, Users, DollarSign, TrendingUp, Edit, Save, X,
   Briefcase, MapPin, Mail, FileText, Clock, User, Loader2, MessageSquare,
   Building2, Phone, ChevronRight, Upload, Sparkles, Check, X as XIcon,
-  AlertTriangle, Info, CalendarDays, Plus, CheckCircle2, RefreshCw, Send
+  AlertTriangle, Info, CalendarDays, Plus, CheckCircle2, RefreshCw, Send,
+  Search, Eye, EyeOff, Globe
 } from "lucide-react";
 import DataRoomSection from "@/components/DataRoomSection";
 import { format } from "date-fns";
@@ -130,6 +131,10 @@ const DealDetail = () => {
   const [followUpBody, setFollowUpBody] = useState("");
   const [sendingFollowUp, setSendingFollowUp] = useState(false);
 
+  // People research state
+  const [peopleResearch, setPeopleResearch] = useState<any[]>([]);
+  const [researchingPerson, setResearchingPerson] = useState(false);
+
   const fetchDeal = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -146,7 +151,7 @@ const DealDetail = () => {
 
   const fetchRelated = useCallback(async () => {
     if (!id) return;
-    const [docsRes, emailsRes, notesRes, assignRes, profilesRes, rolesRes, msgsRes, aiSummaryRes, tasksRes, requestItemsRes, invitationsRes, metricsRes] = await Promise.all([
+    const [docsRes, emailsRes, notesRes, assignRes, profilesRes, rolesRes, msgsRes, aiSummaryRes, tasksRes, requestItemsRes, invitationsRes, metricsRes, peopleResearchRes] = await Promise.all([
       (supabase as any).from("deal_documents").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
       (supabase as any).from("deal_emails").select("*, emails(*)").eq("deal_id", id).order("linked_at", { ascending: false }),
       supabase.from("deal_notes").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
@@ -159,6 +164,7 @@ const DealDetail = () => {
       (supabase as any).from("data_request_items").select("*").eq("deal_id", id).order("sort_order"),
       (supabase as any).from("company_invitations").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
       (supabase as any).from("deal_metrics").select("*").eq("deal_id", id).order("sort_order"),
+      (supabase as any).from("deal_people_research").select("*").eq("deal_id", id).order("created_at", { ascending: false }),
     ]);
     if (docsRes.data) setDealDocuments(docsRes.data);
     if (emailsRes.data) setDealEmails(emailsRes.data);
@@ -167,6 +173,7 @@ const DealDetail = () => {
     if (requestItemsRes.data) setDataRequestItems(requestItemsRes.data);
     if (invitationsRes.data) setCompanyInvitations(invitationsRes.data);
     if (metricsRes.data) setDealMetrics(metricsRes.data);
+    if (peopleResearchRes.data) setPeopleResearch(peopleResearchRes.data);
     
     const profiles = profilesRes.data || [];
     const roles = rolesRes.data || [];
@@ -659,6 +666,51 @@ const DealDetail = () => {
       toast({ title: "Send failed", description: err.message, variant: "destructive" });
     } finally {
       setSendingFollowUp(false);
+    }
+  };
+
+
+  // People research handlers
+  const handleResearchPeople = async () => {
+    if (!deal || !id) return;
+    const people: { name: string; role: string; email?: string }[] = [];
+    if (deal.company_rep_name) {
+      people.push({ name: deal.company_rep_name, role: "Company Rep", email: deal.company_rep_email || undefined });
+    }
+    if (deal.contact_name && deal.contact_name !== deal.company_rep_name) {
+      people.push({ name: deal.contact_name, role: "Contact", email: deal.contact_email || undefined });
+    }
+    if (people.length === 0) {
+      toast({ title: "No people to research", description: "Add a company rep or contact name first", variant: "destructive" });
+      return;
+    }
+    setResearchingPerson(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      for (const person of people) {
+        const { data, error } = await supabase.functions.invoke("research-person", {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+          body: { deal_id: id, person_name: person.name, person_role: person.role, person_email: person.email },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+      }
+      toast({ title: "Research Complete", description: `Researched ${people.length} person(s)` });
+      fetchRelated();
+    } catch (err: any) {
+      toast({ title: "Research failed", description: err.message, variant: "destructive" });
+    } finally {
+      setResearchingPerson(false);
+    }
+  };
+
+  const handleToggleResearchVisibility = async (researchId: string, field: string, currentValue: boolean) => {
+    const update: any = { [field]: !currentValue };
+    const { error } = await (supabase as any).from("deal_people_research").update(update).eq("id", researchId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      fetchRelated();
     }
   };
 
@@ -1320,7 +1372,135 @@ const DealDetail = () => {
                 </CardContent>
               </Card>
 
-              {/* Scheduling & Tasks Card */}
+              {/* People Research Card */}
+              <Card className="border-accent/20 bg-accent/5 md:col-span-2">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="font-display text-base flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-accent" />
+                      People Research
+                      {peopleResearch.length > 0 && (
+                        <span className="font-body text-xs text-muted-foreground font-normal ml-2">
+                          {peopleResearch.length} person(s) researched
+                        </span>
+                      )}
+                    </CardTitle>
+                    <Button size="sm" variant="outline" onClick={handleResearchPeople} disabled={researchingPerson}>
+                      {researchingPerson ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Search className="mr-1 h-3 w-3" />}
+                      Research People
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {researchingPerson ? (
+                    <div className="flex items-center gap-2 py-4">
+                      <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                      <span className="font-body text-sm text-muted-foreground">Researching people online...</span>
+                    </div>
+                  ) : peopleResearch.length > 0 ? (
+                    <div className="space-y-6">
+                      {peopleResearch.map((research: any) => (
+                        <div key={research.id} className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-accent" />
+                            <span className="font-display text-sm font-semibold">{research.person_name}</span>
+                            {research.person_role && (
+                              <Badge variant="secondary" className="text-[10px]">{research.person_role}</Badge>
+                            )}
+                            <span className="font-body text-[11px] text-muted-foreground ml-auto">
+                              Researched {format(new Date(research.researched_at), "MMM d, h:mm a")}
+                            </span>
+                          </div>
+
+                          {/* Professional Background */}
+                          <div className="rounded-md border border-border p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-display text-xs font-semibold flex items-center gap-1">
+                                <Briefcase className="h-3 w-3" /> Professional Background
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-[10px]"
+                                onClick={() => handleToggleResearchVisibility(research.id, "show_professional_background", research.show_professional_background)}
+                              >
+                                {research.show_professional_background ? <Eye className="h-3 w-3 mr-1" /> : <EyeOff className="h-3 w-3 mr-1" />}
+                                {research.show_professional_background ? "Visible" : "Hidden"}
+                              </Button>
+                            </div>
+                            <p className="font-body text-sm text-foreground whitespace-pre-wrap">{research.professional_background || "No data"}</p>
+                          </div>
+
+                          {/* News Mentions */}
+                          <div className="rounded-md border border-border p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-display text-xs font-semibold flex items-center gap-1">
+                                <FileText className="h-3 w-3" /> News & Press Mentions
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-[10px]"
+                                onClick={() => handleToggleResearchVisibility(research.id, "show_news_mentions", research.show_news_mentions)}
+                              >
+                                {research.show_news_mentions ? <Eye className="h-3 w-3 mr-1" /> : <EyeOff className="h-3 w-3 mr-1" />}
+                                {research.show_news_mentions ? "Visible" : "Hidden"}
+                              </Button>
+                            </div>
+                            <p className="font-body text-sm text-foreground whitespace-pre-wrap">{research.news_mentions || "No data"}</p>
+                          </div>
+
+                          {/* Social Media */}
+                          <div className="rounded-md border border-border p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-display text-xs font-semibold flex items-center gap-1">
+                                <MessageSquare className="h-3 w-3" /> Social Media Presence
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-[10px]"
+                                onClick={() => handleToggleResearchVisibility(research.id, "show_social_media", research.show_social_media)}
+                              >
+                                {research.show_social_media ? <Eye className="h-3 w-3 mr-1" /> : <EyeOff className="h-3 w-3 mr-1" />}
+                                {research.show_social_media ? "Visible" : "Hidden"}
+                              </Button>
+                            </div>
+                            <p className="font-body text-sm text-foreground whitespace-pre-wrap">{research.social_media_presence || "No data"}</p>
+                          </div>
+
+                          {/* Red Flags */}
+                          <div className="rounded-md border border-destructive/20 bg-destructive/5 p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-display text-xs font-semibold flex items-center gap-1 text-destructive">
+                                <AlertTriangle className="h-3 w-3" /> Red Flags & Controversies
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-[10px]"
+                                onClick={() => handleToggleResearchVisibility(research.id, "show_red_flags", research.show_red_flags)}
+                              >
+                                {research.show_red_flags ? <Eye className="h-3 w-3 mr-1" /> : <EyeOff className="h-3 w-3 mr-1" />}
+                                {research.show_red_flags ? "Visible" : "Hidden"}
+                              </Button>
+                            </div>
+                            <p className="font-body text-sm text-foreground whitespace-pre-wrap">{research.red_flags || "No data"}</p>
+                          </div>
+
+                          {peopleResearch.indexOf(research) < peopleResearch.length - 1 && <Separator />}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="font-body text-sm text-muted-foreground py-4 text-center">
+                      Click "Research People" to run an AI background check on the company rep and contacts.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+
               <Card className="border-border md:col-span-2">
                 <CardHeader className="pb-2">
                   <CardTitle className="font-display text-base flex items-center gap-2">

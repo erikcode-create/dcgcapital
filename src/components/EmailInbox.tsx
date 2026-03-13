@@ -92,7 +92,9 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [linkedDeals, setLinkedDeals] = useState<Map<string, string>>(new Map());
+  const [linkedDeals, setLinkedDeals] = useState<Map<string, { dealId: string; dealName: string }>>(new Map());
+  const [allDeals, setAllDeals] = useState<{ id: string; name: string }[]>([]);
+  const [reassigning, setReassigning] = useState(false);
   const { toast } = useToast();
 
   const fetchEmails = useCallback(async () => {
@@ -107,24 +109,33 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
         .limit(100),
       supabase
         .from("deal_emails")
-        .select("email_id, deals(name)"),
+        .select("email_id, deal_id, deals(name)"),
     ]);
 
     if (emailsResult.error) {
       console.error("Error fetching emails:", emailsResult.error);
       setEmails([]);
     } else {
-      // Build a map of email_id -> deal name for linked emails
-      const dealMap = new Map<string, string>();
+      // Build a map of email_id -> { dealId, dealName } for linked emails
+      const dealMap = new Map<string, { dealId: string; dealName: string }>();
       (linkedResult.data || []).forEach((d: any) => {
         const dealName = d.deals?.name;
-        if (dealName) dealMap.set(d.email_id, dealName);
+        if (dealName && d.deal_id) dealMap.set(d.email_id, { dealId: d.deal_id, dealName });
       });
       setLinkedDeals(dealMap);
       setEmails((emailsResult.data || []) as Email[]);
     }
     setLoading(false);
   }, [activeFolder]);
+
+  // Fetch all deals once on mount for the reassignment dropdown
+  useEffect(() => {
+    const fetchAllDeals = async () => {
+      const { data } = await supabase.from("deals").select("id, name").order("name");
+      if (data) setAllDeals(data);
+    };
+    fetchAllDeals();
+  }, []);
 
   // Auto-sync on mount, then load from DB
   const hasAutoSynced = useState(false);
@@ -310,6 +321,45 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     }
   };
 
+  // Reassign an email to a different deal (or unlink it)
+  const handleReassignDeal = async (emailId: string, newDealId: string) => {
+    setReassigning(true);
+    try {
+      // Remove existing link for this email
+      await supabase.from("deal_emails").delete().eq("email_id", emailId);
+
+      if (newDealId === "none") {
+        // Unlink: just remove from local state
+        setLinkedDeals(prev => {
+          const next = new Map(prev);
+          next.delete(emailId);
+          return next;
+        });
+        toast({ title: "Email unlinked", description: "Email is no longer linked to any deal." });
+      } else {
+        // Insert new link
+        const { error } = await supabase.from("deal_emails").insert({
+          email_id: emailId,
+          deal_id: newDealId,
+          linked_by: "manual",
+        });
+        if (error) throw error;
+
+        const dealName = allDeals.find(d => d.id === newDealId)?.name || "Unknown";
+        setLinkedDeals(prev => {
+          const next = new Map(prev);
+          next.set(emailId, { dealId: newDealId, dealName });
+          return next;
+        });
+        toast({ title: "Email reassigned", description: `Email linked to "${dealName}".` });
+      }
+    } catch (err: any) {
+      toast({ title: "Reassign failed", description: err.message, variant: "destructive" });
+    } finally {
+      setReassigning(false);
+    }
+  };
+
   const handleDeleteEmail = async (emailId: string) => {
     setDeletingId(emailId);
     try {
@@ -394,12 +444,6 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
               )}
               <Badge variant="outline" className="text-[10px] capitalize">{selectedEmail.folder}</Badge>
               {getCategoryBadge(selectedEmail.category)}
-              {linkedDeals.has(selectedEmail.id) && (
-                <Badge variant="secondary" className="text-[10px]">
-                  <Briefcase className="mr-1 h-3 w-3" />
-                  Deal: {linkedDeals.get(selectedEmail.id)}
-                </Badge>
-              )}
             </div>
           </CardHeader>
           <Separator />
@@ -490,6 +534,27 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <Separator orientation="vertical" className="h-6" />
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs font-body text-muted-foreground">Deal:</span>
+                <Select
+                  value={linkedDeals.get(selectedEmail.id)?.dealId || "none"}
+                  onValueChange={(val) => handleReassignDeal(selectedEmail.id, val)}
+                  disabled={reassigning}
+                >
+                  <SelectTrigger className="h-7 w-[200px] text-xs">
+                    <SelectValue placeholder="No deal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none" className="text-xs">No deal</SelectItem>
+                    {allDeals.map(deal => (
+                      <SelectItem key={deal.id} value={deal.id} className="text-xs">{deal.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {reassigning && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
               </div>
               <Separator orientation="vertical" className="h-6" />
               <Button
@@ -665,7 +730,7 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
                     {linkedDeals.has(email.id) && (
                       <Badge variant="secondary" className="text-[10px]">
                         <Briefcase className="mr-1 h-3 w-3" />
-                        {linkedDeals.get(email.id)}
+                        {linkedDeals.get(email.id)?.dealName}
                       </Badge>
                     )}
                     <span className="ml-auto text-[11px] font-body text-muted-foreground flex-shrink-0 flex items-center gap-1">

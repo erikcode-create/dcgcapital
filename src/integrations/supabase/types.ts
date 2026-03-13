@@ -341,6 +341,71 @@ export type Database = {
           },
         ]
       }
+      deal_people_research: {
+        Row: {
+          created_at: string
+          deal_id: string
+          id: string
+          news_mentions: string | null
+          person_email: string | null
+          person_name: string
+          person_role: string | null
+          professional_background: string | null
+          red_flags: string | null
+          researched_at: string
+          show_news_mentions: boolean
+          show_professional_background: boolean
+          show_red_flags: boolean
+          show_social_media: boolean
+          social_media_presence: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id: string
+          id?: string
+          news_mentions?: string | null
+          person_email?: string | null
+          person_name: string
+          person_role?: string | null
+          professional_background?: string | null
+          red_flags?: string | null
+          researched_at?: string
+          show_news_mentions?: boolean
+          show_professional_background?: boolean
+          show_red_flags?: boolean
+          show_social_media?: boolean
+          social_media_presence?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string
+          id?: string
+          news_mentions?: string | null
+          person_email?: string | null
+          person_name?: string
+          person_role?: string | null
+          professional_background?: string | null
+          red_flags?: string | null
+          researched_at?: string
+          show_news_mentions?: boolean
+          show_professional_background?: boolean
+          show_red_flags?: boolean
+          show_social_media?: boolean
+          social_media_presence?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_people_research_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_tasks: {
         Row: {
           assigned_to: string | null

@@ -536,6 +536,27 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
                 </Select>
               </div>
               <Separator orientation="vertical" className="h-6" />
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs font-body text-muted-foreground">Deal:</span>
+                <Select
+                  value={linkedDeals.get(selectedEmail.id)?.dealId || "none"}
+                  onValueChange={(val) => handleReassignDeal(selectedEmail.id, val)}
+                  disabled={reassigning}
+                >
+                  <SelectTrigger className="h-7 w-[200px] text-xs">
+                    <SelectValue placeholder="No deal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none" className="text-xs">No deal</SelectItem>
+                    {allDeals.map(deal => (
+                      <SelectItem key={deal.id} value={deal.id} className="text-xs">{deal.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {reassigning && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+              </div>
+              <Separator orientation="vertical" className="h-6" />
               <Button
                 variant="outline"
                 size="sm"

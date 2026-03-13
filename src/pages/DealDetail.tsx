@@ -1143,7 +1143,7 @@ const DealDetail = () => {
                         size="sm"
                         variant="outline"
                         onClick={openFollowUpDialog}
-                        disabled={!aiSummary || !(deal.company_rep_email || deal.contact_email)}
+                        disabled={!aiSummary}
                       >
                         <Send className="mr-1 h-3 w-3" />
                         Send Follow-up

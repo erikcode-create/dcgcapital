@@ -321,6 +321,45 @@ const EmailInbox = ({ onDealCreated }: EmailInboxProps) => {
     }
   };
 
+  // Reassign an email to a different deal (or unlink it)
+  const handleReassignDeal = async (emailId: string, newDealId: string) => {
+    setReassigning(true);
+    try {
+      // Remove existing link for this email
+      await supabase.from("deal_emails").delete().eq("email_id", emailId);
+
+      if (newDealId === "none") {
+        // Unlink: just remove from local state
+        setLinkedDeals(prev => {
+          const next = new Map(prev);
+          next.delete(emailId);
+          return next;
+        });
+        toast({ title: "Email unlinked", description: "Email is no longer linked to any deal." });
+      } else {
+        // Insert new link
+        const { error } = await supabase.from("deal_emails").insert({
+          email_id: emailId,
+          deal_id: newDealId,
+          linked_by: "manual",
+        });
+        if (error) throw error;
+
+        const dealName = allDeals.find(d => d.id === newDealId)?.name || "Unknown";
+        setLinkedDeals(prev => {
+          const next = new Map(prev);
+          next.set(emailId, { dealId: newDealId, dealName });
+          return next;
+        });
+        toast({ title: "Email reassigned", description: `Email linked to "${dealName}".` });
+      }
+    } catch (err: any) {
+      toast({ title: "Reassign failed", description: err.message, variant: "destructive" });
+    } finally {
+      setReassigning(false);
+    }
+  };
+
   const handleDeleteEmail = async (emailId: string) => {
     setDeletingId(emailId);
     try {

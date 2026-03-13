@@ -592,18 +592,49 @@ const DealDetail = () => {
     setFollowUpOpen(true);
   };
 
+  // Converts plain-text email body to HTML for proper rendering in email clients.
+  // Handles paragraphs, bullet points (•), and line breaks.
+  const plainTextToHtml = (text: string): string => {
+    const paragraphs = text.split(/\n\n+/);
+    return paragraphs.map(p => {
+      const lines = p.split('\n');
+      const hasBullets = lines.some(l => l.trim().startsWith('•'));
+      if (hasBullets) {
+        const parts: string[] = [];
+        let currentBullets: string[] = [];
+        for (const line of lines) {
+          if (line.trim().startsWith('•')) {
+            currentBullets.push(line.trim().replace(/^•\s*/, ''));
+          } else {
+            if (currentBullets.length) {
+              parts.push('<ul>' + currentBullets.map(b => `<li>${b}</li>`).join('') + '</ul>');
+              currentBullets = [];
+            }
+            if (line.trim()) parts.push(`<p>${line.trim()}</p>`);
+          }
+        }
+        if (currentBullets.length) {
+          parts.push('<ul>' + currentBullets.map(b => `<li>${b}</li>`).join('') + '</ul>');
+        }
+        return parts.join('');
+      }
+      return `<p>${lines.join('<br>')}</p>`;
+    }).join('');
+  };
+
   const handleSendFollowUp = async () => {
     if (!followUpTo.trim()) return;
     setSendingFollowUp(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      const htmlBody = plainTextToHtml(followUpBody);
       const { data, error } = await supabase.functions.invoke("send-email", {
         headers: { Authorization: `Bearer ${session?.access_token}` },
         body: {
           to: followUpTo.trim(),
           cc: followUpCc.trim() || undefined,
           subject: followUpSubject,
-          body: followUpBody,
+          body: htmlBody,
         },
       });
       if (error) throw error;

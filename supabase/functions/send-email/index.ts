@@ -87,12 +87,18 @@ Deno.serve(async (req) => {
 
     const accessToken = await getAccessToken();
 
-    const toRecipients = (Array.isArray(to) ? to : [to]).map((addr: string) => ({
+    // Split comma-separated addresses into individual recipients
+    const parseAddresses = (input: string | string[]): string[] => {
+      if (Array.isArray(input)) return input.flatMap(a => a.split(",").map(s => s.trim()).filter(Boolean));
+      return input.split(",").map(s => s.trim()).filter(Boolean);
+    };
+
+    const toRecipients = parseAddresses(to).map((addr: string) => ({
       emailAddress: { address: addr },
     }));
 
     const ccRecipients = cc
-      ? (Array.isArray(cc) ? cc : [cc]).map((addr: string) => ({
+      ? parseAddresses(cc).map((addr: string) => ({
           emailAddress: { address: addr },
         }))
       : [];

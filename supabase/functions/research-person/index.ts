@@ -74,20 +74,33 @@ Deno.serve(async (req) => {
       ? `Company/Deal: ${deal.name}, Sector: ${deal.sector || "unknown"}, Geography: ${deal.geography || "unknown"}, Description: ${deal.description || "none"}`
       : "";
 
-    const prompt = `You are a due diligence research analyst. Research the following person and provide a comprehensive background report.
+    const prompt = `You are a world-class investigative due diligence researcher. Your job is to produce an exhaustive, deeply researched intelligence report on this person. Leave no stone unturned.
 
 PERSON: ${person_name}
 ${person_email ? `EMAIL: ${person_email}` : ""}
 ${person_role ? `ROLE: ${person_role}` : ""}
 ${dealContext ? `CONTEXT: ${dealContext}` : ""}
 
-Provide a thorough research report with these four sections. Use your training data knowledge to provide the most accurate and detailed information available. If you cannot find specific information, clearly state that.
+RESEARCH INSTRUCTIONS:
+- Search broadly across all possible name variations, spellings, and associated entities.
+- Cross-reference the person's name with their company, industry, geography, and known associates.
+- Look for corporate filings, regulatory records, court records, patent filings, academic publications, and any public records.
+- Search for the person on LinkedIn, Twitter/X, Crunchbase, AngelList, PitchBook, Bloomberg, and other professional databases.
+- Check for involvement in startups, investments, board seats, advisory roles, non-profits, and government positions.
+- Look for conference talks, podcast appearances, blog posts, op-eds, and interviews.
+- If the person is relatively unknown, note that explicitly and provide whatever fragments of information exist, including likely profiles and possible associations based on context clues (company, role, email domain, geography).
 
 Respond with a JSON object containing exactly these four fields:
-1. "professional_background" - A detailed summary of the person's professional history, education, current role, notable positions held, board memberships, and relevant qualifications. Include company names, titles, and approximate dates where possible.
-2. "news_mentions" - A summary of notable news coverage, press releases, interviews, conference appearances, publications, or media mentions involving this person. Include context about what the coverage was about.
-3. "social_media_presence" - A summary of their public social media and online presence including thought leadership, published articles, speaking engagements, and public opinions or positions they've taken.
-4. "red_flags" - Any concerns such as involvement in lawsuits, regulatory issues, failed businesses, controversies, negative press, conflicts of interest, or other items that an investor should be aware of during due diligence. If none found, say "No red flags identified in available data."
+
+1. "professional_background" - EXTREMELY detailed. Include: full career timeline with company names, titles, and dates. Education (university, degree, year). Board memberships, advisory roles. Certifications, licenses. Company founding history. Investment track record if applicable. Known associates, co-founders, or partners. LinkedIn profile URL if identifiable. Size/stage of companies they've been involved with. Key accomplishments and failures. If limited info found, say exactly what was and wasn't findable and why.
+
+2. "news_mentions" - EXTREMELY detailed. Include: every identifiable news article, press release, interview, podcast, conference talk, panel discussion, publication, or media appearance. Include the source name, approximate date, and topic for each mention. Look for trade publications, local news, industry blogs, and niche media—not just major outlets. If no coverage found, explain what was searched.
+
+3. "social_media_presence" - EXTREMELY detailed. Include: identified social media profiles (LinkedIn, Twitter/X, GitHub, Medium, Substack, personal blog, YouTube). Posting frequency and topics. Follower count estimates. Notable posts or threads. Thought leadership areas. Online community involvement. Public speaking or content creation. If profiles can't be confirmed, note potential matches and why they may or may not be the right person.
+
+4. "red_flags" - EXTREMELY thorough. Check for: lawsuits (plaintiff or defendant), regulatory actions, SEC filings or enforcement, bankruptcy filings, tax liens, UCC filings, negative press, controversial statements, failed ventures, conflicts of interest, sanctions screening, politically exposed person (PEP) checks, adverse media screening. For each finding, provide the source and context. If the person has a very thin public profile, flag that as a potential concern for due diligence. If nothing found, state: "No red flags identified. Note: limited public information available—recommend supplementary manual verification."
+
+CRITICAL: Be exhaustive. A thin report is unacceptable. If information is genuinely scarce, explain in detail what you searched for and couldn't find—this is itself valuable intelligence.
 
 Return ONLY valid JSON, no markdown fences.`;
 
@@ -106,9 +119,9 @@ Return ONLY valid JSON, no markdown fences.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: "You are a professional due diligence research analyst. Return only valid JSON." },
+          { role: "system", content: "You are an elite investigative due diligence researcher specializing in deep background checks for investment firms. You are thorough, meticulous, and never produce shallow reports. Return only valid JSON." },
           { role: "user", content: prompt },
         ],
       }),
